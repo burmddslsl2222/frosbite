@@ -22,7 +22,16 @@
             font-family: 'Fira Code', monospace;
             overflow-x: hidden;
             cursor: none; /* Скрываем стандартный курсор */
+            transition: background-color 0.5s, filter 0.5s;
         }
+
+        /* --- Пасхалка: Режим Бога --- */
+        body.god-mode {
+            background-color: #1a0000;
+            filter: hue-rotate(180deg) drop-shadow(0 0 10px red);
+        }
+        body.god-mode .cursor-dot { width: 20px; height: 20px; background: red; }
+        body.god-mode .cursor-ring { width: 60px; height: 60px; border-color: red; }
 
         /* --- Кастомный курсор --- */
         .cursor-glow {
@@ -36,12 +45,13 @@
             border-radius: 50%; pointer-events: none;
             transform: translate(-50%, -50%); z-index: 9999;
             box-shadow: 0 0 10px var(--neon);
+            transition: width 0.2s, height 0.2s, background 0.2s;
         }
         .cursor-ring {
             position: fixed; width: 30px; height: 30px; border: 1px solid var(--neon);
             border-radius: 50%; pointer-events: none;
             transform: translate(-50%, -50%); z-index: 9998;
-            transition: width 0.2s, height 0.2s, background 0.2s;
+            transition: width 0.2s, height 0.2s, background 0.2s, border-color 0.2s;
         }
         .cursor-ring.active {
             width: 50px; height: 50px;
@@ -91,7 +101,7 @@
             background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(10px);
             position: sticky; top: 0; z-index: 100;
         }
-        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; }
+        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; cursor: pointer; user-select: none; }
         .logo span { color: #fff; }
         
         .nav-right { display: flex; align-items: center; gap: 30px; }
@@ -248,6 +258,13 @@
         }
         .toast.show { bottom: 30px; }
 
+        /* Частицы */
+        .particle {
+            position: fixed; width: 6px; height: 6px;
+            background: var(--neon); border-radius: 50%;
+            pointer-events: none; z-index: 9999;
+        }
+
         /* --- Футер --- */
         footer {
             padding: 40px 5vw; display: flex; justify-content: space-between;
@@ -268,7 +285,7 @@
     <div class="toast" id="toast">Заявка успешно отправлена!</div>
 
     <nav>
-        <div class="logo">NULL<span>_</span></div>
+        <div class="logo" id="logo">NULL<span>_</span></div>
         <div class="nav-right">
             <div class="nav-links">
                 <a href="#features">Протокол</a>
@@ -350,6 +367,30 @@
     </footer>
 
     <script>
+        // --- Генератор звуков (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'success') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
         // --- 1. Матричный дождь ---
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
@@ -373,12 +414,11 @@
         setInterval(drawMatrix, 33);
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
-        // --- 2. Кастомный курсор и свечение ---
+        // --- 2. Кастомный курсор и частицы ---
         const dot = document.querySelector('.cursor-dot');
         const ring = document.querySelector('.cursor-ring');
         const glow = document.querySelector('.cursor-glow');
-        let mouseX = 0, mouseY = 0;
-        let ringX = 0, ringY = 0;
+        let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
 
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX; mouseY = e.clientY;
@@ -394,35 +434,46 @@
         }
         animateCursor();
 
+        // Эффект взрыва частиц при клике
+        window.addEventListener('mousedown', (e) => {
+            for (let i = 0; i < 8; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                document.body.appendChild(p);
+                p.style.left = e.clientX + 'px';
+                p.style.top = e.clientY + 'px';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 50 + Math.random() * 100;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+
+                p.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], { duration: 500, easing: 'cubic-bezier(0, .9, .57, 1)' }).onfinish = () => p.remove();
+            }
+        });
+
+        // --- 3. 3D эффект и Звук ---
         document.querySelectorAll('a, button, .tilt, input, textarea').forEach(el => {
             el.addEventListener('mouseenter', () => ring.classList.add('active'));
             el.addEventListener('mouseleave', () => ring.classList.remove('active'));
+            el.addEventListener('click', () => playSound('click'));
         });
 
-        // --- 3. 3D эффект карточек (Tilt + Spotlight) ---
         document.querySelectorAll('.tilt').forEach(card => {
             card.addEventListener('mousemove', e => {
                 const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                // Свечение (Spotlight)
-                card.style.setProperty('--x', `${x}px`);
-                card.style.setProperty('--y', `${y}px`);
-
-                // 3D наклон
+                const x = e.clientX - rect.left, y = e.clientY - rect.top;
+                card.style.setProperty('--x', `${x}px`); card.style.setProperty('--y', `${y}px`);
                 if(card.classList.contains('feature')) {
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-                    const rotateX = ((y - centerY) / centerY) * -10;
-                    const rotateY = ((x - centerX) / centerX) * 10;
-                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                    const cX = rect.width / 2, cY = rect.height / 2;
+                    card.style.transform = `rotateX(${((y - cY) / cY) * -10}deg) rotateY(${((x - cX) / cX) * 10}deg) scale(1.02)`;
                 }
             });
             card.addEventListener('mouseleave', () => {
-                if(card.classList.contains('feature')) {
-                    card.style.transform = `rotateX(0) rotateY(0) scale(1)`;
-                }
+                if(card.classList.contains('feature')) card.style.transform = `rotateX(0) rotateY(0) scale(1)`;
             });
         });
 
@@ -431,8 +482,7 @@
         const termBody = document.getElementById('term-body');
         termInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
-                const command = this.value.trim().toLowerCase();
-                this.value = '';
+                const command = this.value.trim().toLowerCase(); this.value = '';
                 const newLine = document.createElement('div');
                 newLine.className = 'term-line';
                 newLine.innerHTML = `<span class="prompt">root@null:~#</span> <span class="cmd">${command}</span>`;
@@ -440,10 +490,11 @@
                 termBody.insertBefore(newLine, inputLine);
 
                 let response = '';
-                if (command === 'help') response = 'Команды: help, hack, clear, tg, matrix';
-                else if (command === 'hack') response = 'Взлом сервера... Доступ разрешен. Ты в системе.';
+                if (command === 'help') response = 'Команды: help, hack, clear, tg, matrix, god';
+                else if (command === 'hack') response = 'Взлом сервера... Доступ разрешен.';
                 else if (command === 'tg') response = 'Мой тг: <a href="https://t.me/Zxcswu" target="_blank" style="color:#2AABEE">@Zxcswu</a>';
                 else if (command === 'matrix') { response = 'Пробуждение...'; document.querySelector('canvas').style.opacity = '0.8'; setTimeout(()=>document.querySelector('canvas').style.opacity='0.15', 3000); }
+                else if (command === 'god') { document.body.classList.toggle('god-mode'); response = 'Режим бога переключен.'; }
                 else if (command === 'clear') { termBody.querySelectorAll('.term-line').forEach(l => l.remove()); return; }
                 else if (command !== '') response = `Неизвестная команда: ${command}`;
 
@@ -456,7 +507,18 @@
             }
         });
 
-        // --- 5. Отправка формы (Безопасно через Cloudflare Worker) ---
+        // --- 5. Пасхалка на логотип ---
+        let logoClicks = 0;
+        document.getElementById('logo').addEventListener('click', () => {
+            logoClicks++;
+            if (logoClicks >= 5) {
+                document.body.classList.toggle('god-mode');
+                logoClicks = 0;
+            }
+            setTimeout(() => { logoClicks = 0; }, 2000);
+        });
+
+        // --- 6. Отправка формы (Безопасно через Cloudflare Worker) ---
         const WORKER_URL = 'https://null-bot.okak3213312.workers.dev'; 
 
         const form = document.getElementById('contact-form');
@@ -477,15 +539,12 @@
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        username: username,
-                        message: message
-                    })
+                    body: JSON.stringify({ name: name, username: username, message: message })
                 });
 
                 if (response.ok) {
                     showToast('Заявка успешно доставлена!');
+                    playSound('success');
                     form.reset();
                 } else {
                     showToast('Ошибка отправки.');
