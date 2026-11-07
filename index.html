@@ -1,611 +1,508 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FROSTBITE — Холодильники нового поколения</title>
-<style>
-  /* ---------- БАЗА ---------- */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  :root {
-    --red: #ff1e1e;
-    --dark: #0a0a0a;
-    --cream: #f5f1ea;
-    --accent: #ffcc00;
-  }
-  html, body {
-    background: var(--dark);
-    color: var(--cream);
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-  }
-  body { cursor: crosshair; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NULL // Система взломана</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;700&family=Syne:wght@700;800&display=swap');
 
-  /* ---------- ЗЕРНО / ШУМ ПОВЕРХ ---------- */
-  .noise {
-    position: fixed; inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0.06;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-    mix-blend-mode: overlay;
-  }
+        :root {
+            --neon: #00ff41;
+            --dark: #050505;
+            --gray: #888;
+            --tg: #2AABEE;
+            --danger: #ff003c;
+        }
 
-  /* ---------- ХЕДЕР ---------- */
-  header {
-    position: fixed; top: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 24px 48px;
-    mix-blend-mode: difference;
-  }
-  .logo {
-    font-weight: 900;
-    font-size: 22px;
-    letter-spacing: 4px;
-    color: #fff;
-    text-transform: uppercase;
-  }
-  .logo span { color: var(--red); }
-  nav a {
-    color: #fff;
-    text-decoration: none;
-    margin-left: 32px;
-    font-size: 13px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-weight: 700;
-    transition: opacity .3s;
-  }
-  nav a:hover { opacity: .5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--dark);
+            color: var(--neon);
+            font-family: 'Fira Code', monospace;
+            overflow-x: hidden;
+            cursor: none; /* Скрываем стандартный курсор */
+        }
 
-  /* ---------- HERO ---------- */
-  .hero {
-    height: 100vh;
-    min-height: 700px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 8vw;
-    overflow: hidden;
-  }
+        /* --- Кастомный курсор --- */
+        .cursor-glow {
+            position: fixed; width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(0,255,65,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none;
+            transform: translate(-50%, -50%); z-index: 1;
+        }
+        .cursor-dot {
+            position: fixed; width: 8px; height: 8px; background: var(--neon);
+            border-radius: 50%; pointer-events: none;
+            transform: translate(-50%, -50%); z-index: 9999;
+            box-shadow: 0 0 10px var(--neon);
+        }
+        .cursor-ring {
+            position: fixed; width: 30px; height: 30px; border: 1px solid var(--neon);
+            border-radius: 50%; pointer-events: none;
+            transform: translate(-50%, -50%); z-index: 9998;
+            transition: width 0.2s, height 0.2s, background 0.2s;
+        }
+        .cursor-ring.active {
+            width: 50px; height: 50px;
+            background: rgba(0,255,65,0.2); border-color: #fff;
+        }
 
-  /* Огромные буквы на заднем плане */
-  .hero-bg-text {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(200px, 40vw, 700px);
-    font-weight: 900;
-    color: transparent;
-    -webkit-text-stroke: 2px rgba(255, 30, 30, 0.15);
-    letter-spacing: -20px;
-    white-space: nowrap;
-    z-index: 0;
-    user-select: none;
-    pointer-events: none;
-  }
+        /* --- Матричный дождь --- */
+        canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; opacity: 0.15; pointer-events: none;
+        }
 
-  /* Вращающийся "ледяной" круг */
-  .ice-orb {
-    position: absolute;
-    right: -100px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 700px; height: 700px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #ffffff22, #ff1e1e11 40%, transparent 70%);
-    border: 1px solid #ff1e1e33;
-    z-index: 0;
-    animation: spin 40s linear infinite;
-  }
-  .ice-orb::before, .ice-orb::after {
-    content: ''; position: absolute; inset: 30px;
-    border-radius: 50%;
-    border: 1px dashed #ff1e1e44;
-  }
-  .ice-orb::after { inset: 80px; border-style: solid; border-color: #ffffff11; }
-  @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+        /* --- Глитч-заголовки --- */
+        .glitch {
+            font-family: 'Syne', sans-serif; font-weight: 800;
+            text-transform: uppercase; position: relative;
+            font-size: clamp(40px, 8vw, 120px); line-height: 0.9;
+            letter-spacing: -2px;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; background: var(--dark);
+        }
+        .glitch::before {
+            left: 2px; text-shadow: -2px 0 red;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -2px; text-shadow: -2px 0 blue;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 80px, 0); }
+            20% { clip: rect(30px, 9999px, 20px, 0); }
+            40% { clip: rect(60px, 9999px, 50px, 0); }
+            60% { clip: rect(10px, 9999px, 90px, 0); }
+            80% { clip: rect(80px, 9999px, 10px, 0); }
+            100% { clip: rect(50px, 9999px, 30px, 0); }
+        }
 
-  .hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 900px;
-  }
+        /* --- Навигация --- */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5vw; border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+            background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; }
+        .logo span { color: #fff; }
+        
+        .nav-right { display: flex; align-items: center; gap: 30px; }
+        .nav-links a {
+            color: var(--gray); text-decoration: none; font-size: 14px;
+            text-transform: uppercase; transition: 0.3s; position: relative;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -5px; left: 0;
+            width: 0%; height: 1px; background: var(--neon); transition: 0.3s;
+        }
+        .nav-links a:hover { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .nav-links a:hover::after { width: 100%; }
 
-  .hero-tag {
-    display: inline-block;
-    padding: 8px 16px;
-    border: 1px solid var(--red);
-    color: var(--red);
-    font-size: 11px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 32px;
-    animation: fadeUp 1s .2s both;
-  }
+        /* --- Кнопка Telegram --- */
+        .tg-btn {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(42, 171, 238, 0.1); border: 1px solid var(--tg);
+            color: var(--tg); padding: 10px 20px; text-decoration: none;
+            font-size: 14px; font-weight: bold; transition: 0.3s; border-radius: 4px;
+        }
+        .tg-btn:hover { background: var(--tg); color: #fff; box-shadow: 0 0 20px var(--tg); transform: scale(1.05); }
 
-  .hero h1 {
-    font-size: clamp(60px, 11vw, 180px);
-    line-height: 0.85;
-    font-weight: 900;
-    letter-spacing: -4px;
-    text-transform: uppercase;
-    animation: fadeUp 1s .4s both;
-  }
-  .hero h1 .accent {
-    color: var(--red);
-    display: inline-block;
-  }
+        /* --- Главный экран --- */
+        .hero {
+            min-height: 90vh; display: flex; flex-direction: column;
+            justify-content: center; padding: 0 5vw; position: relative; z-index: 2;
+        }
+        .hero-tag {
+            color: var(--gray); margin-bottom: 20px; font-size: 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .hero-tag::before {
+            content: ''; display: inline-block; width: 10px; height: 10px;
+            background: var(--danger); border-radius: 50%;
+            box-shadow: 0 0 15px var(--danger); animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
 
-  .hero p {
-    margin-top: 40px;
-    font-size: 18px;
-    max-width: 500px;
-    line-height: 1.6;
-    color: #aaa;
-    animation: fadeUp 1s .6s both;
-  }
+        .hero p {
+            max-width: 600px; margin-top: 40px; color: var(--gray);
+            font-size: 18px; border-left: 2px solid var(--neon); padding-left: 20px;
+        }
 
-  .hero-cta {
-    margin-top: 48px;
-    display: flex; gap: 20px; align-items: center;
-    animation: fadeUp 1s .8s both;
-  }
-  .btn {
-    padding: 18px 40px;
-    background: var(--red);
-    color: #fff;
-    text-decoration: none;
-    font-weight: 800;
-    letter-spacing: 3px;
-    font-size: 13px;
-    text-transform: uppercase;
-    transition: all .3s;
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-  }
-  .btn::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: #fff;
-    transform: translateX(-101%);
-    transition: transform .4s cubic-bezier(.77,0,.18,1);
-    z-index: 0;
-  }
-  .btn span { position: relative; z-index: 1; transition: color .3s; }
-  .btn:hover::before { transform: translateX(0); }
-  .btn:hover span { color: var(--dark); }
+        /* --- Кнопки --- */
+        .btn {
+            display: inline-block; padding: 15px 40px;
+            border: 1px solid var(--neon); color: var(--neon);
+            text-decoration: none; text-transform: uppercase;
+            letter-spacing: 2px; font-weight: 700; position: relative;
+            overflow: hidden; transition: 0.3s; background: transparent;
+            font-size: 16px; z-index: 1; margin-top: 40px;
+        }
+        .btn::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: var(--neon);
+            transform: scaleX(0); transform-origin: right; transition: transform 0.4s ease;
+            z-index: -1;
+        }
+        .btn:hover::before { transform: scaleX(1); transform-origin: left; }
+        .btn:hover { color: var(--dark); box-shadow: 0 0 30px var(--neon); }
 
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid #444;
-    color: #fff;
-  }
-  .btn-ghost::before { background: var(--cream); }
-  .btn-ghost:hover span { color: var(--dark); }
+        /* --- Интерактивные карточки (3D эффект) --- */
+        .features {
+            padding: 100px 5vw; display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px; position: relative; z-index: 2;
+            perspective: 1000px;
+        }
+        .feature {
+            padding: 40px; border: 1px solid #222; transition: 0.1s;
+            background: rgba(10, 10, 10, 0.8); position: relative;
+            transform-style: preserve-3d; border-radius: 8px; overflow: hidden;
+        }
+        .feature::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(0,255,65,0.15) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+        }
+        .feature:hover { border-color: var(--neon); box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        .feature:hover::after { opacity: 1; }
+        .feature h3 {
+            font-family: 'Syne', sans-serif; font-size: 24px;
+            margin-bottom: 15px; color: #fff; transform: translateZ(30px);
+        }
+        .feature p { color: var(--gray); font-size: 15px; transform: translateZ(20px); }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+        /* --- Терминал --- */
+        .terminal-section { padding: 80px 5vw; position: relative; z-index: 2; }
+        .terminal {
+            background: #000; border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 8px; max-width: 800px; margin: 0 auto;
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.05);
+        }
+        .term-header {
+            background: #111; padding: 10px 20px; display: flex; gap: 8px;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
+        .term-body {
+            padding: 30px; font-size: 16px; line-height: 1.8;
+            height: 250px; overflow-y: auto;
+        }
+        .term-body::-webkit-scrollbar { width: 8px; }
+        .term-body::-webkit-scrollbar-thumb { background: var(--neon); }
+        .prompt { color: #fff; } .cmd { color: var(--neon); } .out { color: var(--gray); }
+        .input-line { display: flex; align-items: center; margin-top: 10px; }
+        .input-line input {
+            background: transparent; border: none; color: var(--neon);
+            font-size: 16px; outline: none; flex: 1; margin-left: 10px;
+            font-family: 'Fira Code', monospace;
+        }
 
-  /* ---------- СКРОЛЛ-ИНДИКАТОР ---------- */
-  .scroll-hint {
-    position: absolute;
-    bottom: 40px; left: 8vw;
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: #666;
-    text-transform: uppercase;
-    display: flex; align-items: center; gap: 12px;
-    animation: fadeUp 1s 1.2s both;
-  }
-  .scroll-hint::after {
-    content: '';
-    width: 60px; height: 1px;
-    background: var(--red);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
+        /* --- Форма заявки --- */
+        .contact-section {
+            padding: 100px 5vw; text-align: center; position: relative; z-index: 2;
+            border-top: 1px solid #222;
+        }
+        .contact-section h2 {
+            font-family: 'Syne', sans-serif; font-size: 40px;
+            color: #fff; margin-bottom: 20px;
+        }
+        .form-box {
+            max-width: 500px; margin: 0 auto; background: #0a0a0a;
+            padding: 40px; border: 1px solid #222; border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,255,65,0.05);
+        }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; color: var(--gray); margin-bottom: 8px; font-size: 14px; }
+        .input-group input, .input-group textarea {
+            width: 100%; padding: 12px; background: #000;
+            border: 1px solid #333; color: #fff; font-family: 'Fira Code', monospace;
+            outline: none; transition: 0.3s; border-radius: 4px;
+        }
+        .input-group input:focus, .input-group textarea:focus {
+            border-color: var(--neon); box-shadow: 0 0 10px rgba(0,255,65,0.2);
+        }
+        .submit-btn {
+            width: 100%; padding: 15px; background: var(--neon);
+            color: var(--dark); border: none; font-weight: bold;
+            font-size: 16px; cursor: pointer; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 1px; border-radius: 4px;
+        }
+        .submit-btn:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
+        .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
 
-  /* ---------- СЕКЦИИ ---------- */
-  section {
-    padding: 160px 8vw;
-    position: relative;
-  }
+        /* Уведомление */
+        .toast {
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            background: var(--neon); color: var(--dark); padding: 15px 30px;
+            border-radius: 50px; font-weight: bold; transition: 0.5s;
+            z-index: 10000; box-shadow: 0 0 30px var(--neon);
+        }
+        .toast.show { bottom: 30px; }
 
-  .section-label {
-    font-size: 12px;
-    letter-spacing: 5px;
-    color: var(--red);
-    text-transform: uppercase;
-    font-weight: 700;
-    margin-bottom: 24px;
-    display: flex; align-items: center; gap: 16px;
-  }
-  .section-label::before {
-    content: '';
-    width: 40px; height: 1px;
-    background: var(--red);
-  }
-
-  .section-title {
-    font-size: clamp(40px, 6vw, 90px);
-    font-weight: 900;
-    line-height: 0.9;
-    letter-spacing: -2px;
-    text-transform: uppercase;
-    margin-bottom: 40px;
-  }
-  .section-title em {
-    font-style: normal;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--cream);
-  }
-
-  /* ---------- FEATURES GRID ---------- */
-  .features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1px;
-    background: #222;
-    border: 1px solid #222;
-  }
-  .feature {
-    background: var(--dark);
-    padding: 60px 40px;
-    transition: background .4s, transform .4s;
-    position: relative;
-    overflow: hidden;
-  }
-  .feature:hover {
-    background: #140000;
-    transform: translateY(-4px);
-  }
-  .feature:hover .feature-num { color: var(--red); }
-  .feature-num {
-    font-size: 80px;
-    font-weight: 900;
-    color: #1a1a1a;
-    line-height: 1;
-    margin-bottom: 20px;
-    transition: color .4s;
-  }
-  .feature h3 {
-    font-size: 22px;
-    margin-bottom: 16px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .feature p { color: #888; line-height: 1.6; font-size: 15px; }
-
-  /* ---------- МОДЕЛИ ---------- */
-  .models {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 32px;
-    margin-top: 60px;
-  }
-  .model-card {
-    background: #111;
-    border: 1px solid #222;
-    padding: 40px;
-    position: relative;
-    transition: all .5s cubic-bezier(.77,0,.18,1);
-    overflow: hidden;
-  }
-  .model-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 3px;
-    background: var(--red);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform .5s cubic-bezier(.77,0,.18,1);
-  }
-  .model-card:hover::before { transform: scaleX(1); }
-  .model-card:hover { border-color: #ff1e1e55; background: #160000; }
-
-  .fridge {
-    height: 240px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 32px;
-    position: relative;
-  }
-  .fridge-body {
-    width: 140px;
-    height: 220px;
-    background: linear-gradient(135deg, #2a2a2a, #0f0f0f);
-    border-radius: 6px;
-    border: 1px solid #333;
-    position: relative;
-    transition: transform .6s;
-    box-shadow: 0 20px 60px rgba(255,30,30,0.1);
-  }
-  .model-card:hover .fridge-body {
-    transform: translateY(-10px) rotate(-2deg);
-    box-shadow: 0 30px 80px rgba(255,30,30,0.3);
-  }
-  .fridge-body::before {
-    content: '';
-    position: absolute;
-    top: 70px; left: 0; right: 0;
-    height: 2px;
-    background: #333;
-  }
-  .fridge-body::after {
-    content: '';
-    position: absolute;
-    top: 40px; right: 18px;
-    width: 4px; height: 24px;
-    background: #555;
-    border-radius: 2px;
-  }
-
-  .model-card h3 {
-    font-size: 28px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-  }
-  .model-desc { color: #777; font-size: 14px; margin-bottom: 24px; }
-  .price {
-    font-size: 32px;
-    font-weight: 900;
-    color: var(--red);
-    margin-bottom: 24px;
-  }
-  .price small { font-size: 14px; color: #666; font-weight: 400; }
-
-  /* ---------- CTA ФИНАЛЬНЫЙ ---------- */
-  .final-cta {
-    text-align: center;
-    padding: 200px 8vw;
-    position: relative;
-    overflow: hidden;
-  }
-  .final-cta::before {
-    content: 'FROSTBITE';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(150px, 30vw, 500px);
-    font-weight: 900;
-    color: transparent;
-    -webkit-text-stroke: 1px #ff1e1e15;
-    letter-spacing: -10px;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-  .final-cta h2 {
-    font-size: clamp(50px, 8vw, 120px);
-    font-weight: 900;
-    line-height: 0.9;
-    letter-spacing: -3px;
-    text-transform: uppercase;
-    margin-bottom: 40px;
-    position: relative;
-  }
-  .final-cta p { color: #888; margin-bottom: 48px; font-size: 18px; position: relative; }
-  .final-cta .btn { position: relative; }
-
-  /* ---------- ФУТЕР ---------- */
-  footer {
-    padding: 60px 8vw;
-    border-top: 1px solid #222;
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;
-    color: #444;
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  /* ---------- REVEAL ПРИ СКРОЛЛЕ ---------- */
-  .reveal {
-    opacity: 0;
-    transform: translateY(60px);
-    transition: opacity 1s cubic-bezier(.77,0,.18,1), transform 1s cubic-bezier(.77,0,.18,1);
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* ---------- КАСТОМНЫЙ КУРСОР-ТОЧКА ---------- */
-  .cursor-dot {
-    position: fixed;
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: var(--red);
-    pointer-events: none;
-    z-index: 10000;
-    transform: translate(-50%, -50%);
-    transition: width .2s, height .2s;
-    mix-blend-mode: difference;
-  }
-  .cursor-dot.grow { width: 40px; height: 40px; }
-
-  /* ---------- АДАПТИВ ---------- */
-  @media (max-width: 768px) {
-    header { padding: 16px 24px; }
-    nav a { margin-left: 16px; font-size: 11px; }
-    section { padding: 100px 6vw; }
-    .hero { padding: 0 6vw; }
-    .ice-orb { width: 400px; height: 400px; right: -200px; }
-  }
-</style>
+        /* --- Футер --- */
+        footer {
+            padding: 40px 5vw; display: flex; justify-content: space-between;
+            align-items: center; border-top: 1px solid #222;
+            color: #444; font-size: 13px; flex-wrap: wrap; gap: 20px;
+            position: relative; z-index: 2;
+        }
+        footer a { color: var(--tg); text-decoration: none; font-weight: bold; transition: 0.3s; }
+        footer a:hover { text-shadow: 0 0 10px var(--tg); }
+    </style>
 </head>
 <body>
 
-<!-- Зерно -->
-<div class="noise"></div>
+    <div class="cursor-glow"></div>
+    <div class="cursor-ring"></div>
+    <div class="cursor-dot"></div>
+    <canvas id="matrix"></canvas>
+    <div class="toast" id="toast">Заявка успешно отправлена!</div>
 
-<!-- Кастомный курсор -->
-<div class="cursor-dot" id="cursor"></div>
+    <nav>
+        <div class="logo">NULL<span>_</span></div>
+        <div class="nav-right">
+            <div class="nav-links">
+                <a href="#features">Протокол</a>
+                <a href="#terminal">Терминал</a>
+                <a href="#contact">Связаться</a>
+            </div>
+            <a href="https://t.me/Zxcswu" target="_blank" class="tg-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                Telegram
+            </a>
+        </div>
+    </nav>
 
-<!-- ХЕДЕР -->
-<header>
-  <div class="logo">FROST<span>BITE</span></div>
-  <nav>
-    <a href="#features">Технологии</a>
-    <a href="#models">Модели</a>
-    <a href="#buy">Купить</a>
-  </nav>
-</header>
+    <header class="hero">
+        <div class="hero-tag">СИСТЕМА ЗАЩИЩЕНА</div>
+        <h1 class="glitch" data-text="ТЕБЯ НЕ СУЩЕСТВУЕТ">ТЕБЯ НЕ СУЩЕСТВУЕТ</h1>
+        <p>Мы не просто скрываем твой IP. Мы стираем твой цифровой след. Военное шифрование, абсолютная анонимность и нулевая толерантность к слежке.</p>
+        <a href="#contact" class="btn">Оставить заявку</a>
+    </header>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg-text">COLD</div>
-  <div class="ice-orb"></div>
+    <section class="features" id="features">
+        <div class="feature tilt">
+            <h3>01 / Слепая зона</h3>
+            <p>Мы не храним логи. Вообще. Даже если нас взломают, они не найдут ничего о тебе. Нулевое логирование на аппаратном уровне.</p>
+        </div>
+        <div class="feature tilt">
+            <h3>02 / Квантовое шифрование</h3>
+            <p>Твой трафик защищен алгоритмами, которые не поддаются взлому даже на суперкомпьютерах АНБ.</p>
+        </div>
+        <div class="feature tilt">
+            <h3>03 / Невидимость</h3>
+            <p>Твой интернет-провайдер будет видеть только белый шум. Никаких метаданных, никаких паттернов поведения.</p>
+        </div>
+    </section>
 
-  <div class="hero-content">
-    <div class="hero-tag">Новое поколение · 2026</div>
-    <h1>
-      ХОЛОД<br>
-      <span class="accent">КАК</span><br>
-      ОРУЖИЕ
-    </h1>
-    <p>FROSTBITE — это не просто холодильник. Это ледяная машина, созданная для тех, кто ценит безупречный холод и дерзкий дизайн. −24°C за 4 минуты.</p>
-    <div class="hero-cta">
-      <a href="#models" class="btn"><span>Смотреть модели</span></a>
-      <a href="#features" class="btn btn-ghost"><span>Технологии</span></a>
-    </div>
-  </div>
+    <section class="terminal-section" id="terminal">
+        <div class="terminal tilt">
+            <div class="term-header">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            </div>
+            <div class="term-body" id="term-body">
+                <div class="term-line"><span class="prompt">root@null:~#</span> <span class="cmd">sys_check</span></div>
+                <div class="term-line out">[OK] Ядро защищено.</div>
+                <div class="term-line out" style="margin-bottom: 20px;">Введи <span style="color:#fff">help</span>, чтобы увидеть команды.</div>
+                <div class="input-line">
+                    <span class="prompt">root@null:~#</span>
+                    <input type="text" id="term-input" autocomplete="off" autofocus>
+                </div>
+            </div>
+        </div>
+    </section>
 
-  <div class="scroll-hint">Скролл вниз</div>
-</section>
+    <section class="contact-section" id="contact">
+        <h2 class="glitch" data-text="ОСТАВИТЬ ЗАЯВКУ">ОСТАВИТЬ ЗАЯВКУ</h2>
+        <p style="color: var(--gray); margin-bottom: 40px;">Свяжись с нами для получения доступа к системе NULL.</p>
+        
+        <div class="form-box tilt">
+            <form id="contact-form">
+                <div class="input-group">
+                    <label>Твой Псевдоним</label>
+                    <input type="text" id="name" placeholder="Например: Neo" required>
+                </div>
+                <div class="input-group">
+                    <label>Контакт в Telegram</label>
+                    <input type="text" id="username" placeholder="@username или номер" required>
+                </div>
+                <div class="input-group">
+                    <label>Сообщение (необязательно)</label>
+                    <textarea id="message" rows="3" placeholder="Что тебе нужно?"></textarea>
+                </div>
+                <button type="submit" class="submit-btn" id="submit-btn">Отправить данные</button>
+            </form>
+        </div>
+    </section>
 
-<!-- FEATURES -->
-<section id="features">
-  <div class="reveal">
-    <div class="section-label">Технологии</div>
-    <h2 class="section-title">ХОЛОД <em>ПОД</em><br>КОНТРОЛЕМ</h2>
-  </div>
+    <footer>
+        <div>NULL CORP // СИСТЕМА АКТИВНА</div>
+        <div>АВТОР: <a href="https://t.me/Zxcswu" target="_blank">@Zxcswu</a></div>
+    </footer>
 
-  <div class="features reveal">
-    <div class="feature">
-      <div class="feature-num">01</div>
-      <h3>Ледяной удар</h3>
-      <p>Инверторный компрессор нового поколения охлаждает камеру до −24°C всего за 4 минуты.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-num">02</div>
-      <h3>Тихий убийца</h3>
-      <p>Уровень шума 18 дБ. Тише, чем шёпот. Ты его просто не услышишь.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-num">03</div>
-      <h3>Умный контроль</h3>
-      <p>Приложение FROSTBITE App: меняй температуру, следи за свежестью и получай уведомления.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-num">04</div>
-      <h3>Стальной корпус</h3>
-      <p>Нержавеющая сталь с матовым покрытием. Не оставляет отпечатков, не боится царапин.</p>
-    </div>
-  </div>
-</section>
+    <script>
+        // --- 1. Матричный дождь ---
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEF';
+        const alphabet = katakana.split('');
+        const fontSize = 16; const columns = canvas.width / fontSize;
+        const drops = []; for (let x = 0; x < columns; x++) drops[x] = 1;
 
-<!-- MODELS -->
-<section id="models">
-  <div class="reveal">
-    <div class="section-label">Модели</div>
-    <h2 class="section-title">ВЫБЕРИ <em>СВОЙ</em><br>ХОЛОД</h2>
-  </div>
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff41'; ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = alphabet[Math.floor(Math.random() * alphabet.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
-  <div class="models">
-    <div class="model-card reveal">
-      <div class="fridge"><div class="fridge-body"></div></div>
-      <h3>Frostbite One</h3>
-      <p class="model-desc">Компактный. Дерзкий. Для тех, кто живёт быстро.</p>
-      <div class="price">89 990 ₽ <small>· базовый</small></div>
-      <a href="#buy" class="btn"><span>Купить</span></a>
-    </div>
+        // --- 2. Кастомный курсор и свечение ---
+        const dot = document.querySelector('.cursor-dot');
+        const ring = document.querySelector('.cursor-ring');
+        const glow = document.querySelector('.cursor-glow');
+        let mouseX = 0, mouseY = 0;
+        let ringX = 0, ringY = 0;
 
-    <div class="model-card reveal">
-      <div class="fridge"><div class="fridge-body" style="width:180px;"></div></div>
-      <h3>Frostbite Pro</h3>
-      <p class="model-desc">Двойная камера. No Frost. Умный контроль через приложение.</p>
-      <div class="price">149 990 ₽ <small>· хит</small></div>
-      <a href="#buy" class="btn"><span>Купить</span></a>
-    </div>
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            dot.style.left = mouseX + 'px'; dot.style.top = mouseY + 'px';
+            glow.style.left = mouseX + 'px'; glow.style.top = mouseY + 'px';
+        });
 
-    <div class="model-card reveal">
-      <div class="fridge"><div class="fridge-body" style="width:200px;height:230px;"></div></div>
-      <h3>Frostbite Vault</h3>
-      <p class="model-desc">Максимальный объём. Для тех, кто запасается всерьёз.</p>
-      <div class="price">219 990 ₽ <small>· флагман</small></div>
-      <a href="#buy" class="btn"><span>Купить</span></a>
-    </div>
-  </div>
-</section>
+        function animateCursor() {
+            ringX += (mouseX - ringX) * 0.15;
+            ringY += (mouseY - ringY) * 0.15;
+            ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
 
-<!-- FINAL CTA -->
-<section class="final-cta" id="buy">
-  <div class="reveal">
-    <h2>ГОТОВ К<br><span style="color:var(--red)">ХОЛОДУ?</span></h2>
-    <p>Оставь заявку — и мы доставим твой FROSTBITE уже завтра.</p>
-    <a href="#" class="btn" onclick="alert('Заявка принята! Мы свяжемся с тобой.'); return false;"><span>Оставить заявку</span></a>
-  </div>
-</section>
+        document.querySelectorAll('a, button, .tilt, input, textarea').forEach(el => {
+            el.addEventListener('mouseenter', () => ring.classList.add('active'));
+            el.addEventListener('mouseleave', () => ring.classList.remove('active'));
+        });
 
-<!-- FOOTER -->
-<footer>
-  <div>© 2026 FROSTBITE INDUSTRIES</div>
-  <div>ХОЛОД · СТИЛЬ · ХАРАКТЕР</div>
-  <div>MADE WITH ICE &amp; FIRE</div>
-</footer>
+        // --- 3. 3D эффект карточек (Tilt + Spotlight) ---
+        document.querySelectorAll('.tilt').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Свечение (Spotlight)
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
 
-<script>
-  // ====== Кастомный курсор ======
-  const cursor = document.getElementById('cursor');
-  document.addEventListener('mousemove', (e) => {
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
-  });
-  document.querySelectorAll('a, .btn, .model-card, .feature').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('grow'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('grow'));
-  });
+                // 3D наклон
+                if(card.classList.contains('feature')) {
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = ((y - centerY) / centerY) * -10;
+                    const rotateY = ((x - centerX) / centerX) * 10;
+                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                }
+            });
+            card.addEventListener('mouseleave', () => {
+                if(card.classList.contains('feature')) {
+                    card.style.transform = `rotateX(0) rotateY(0) scale(1)`;
+                }
+            });
+        });
 
-  // ====== Reveal при скролле ======
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.15 });
+        // --- 4. Терминал ---
+        const termInput = document.getElementById('term-input');
+        const termBody = document.getElementById('term-body');
+        termInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim().toLowerCase();
+                this.value = '';
+                const newLine = document.createElement('div');
+                newLine.className = 'term-line';
+                newLine.innerHTML = `<span class="prompt">root@null:~#</span> <span class="cmd">${command}</span>`;
+                const inputLine = document.querySelector('.input-line');
+                termBody.insertBefore(newLine, inputLine);
 
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+                let response = '';
+                if (command === 'help') response = 'Команды: help, hack, clear, tg, matrix';
+                else if (command === 'hack') response = 'Взлом сервера... Доступ разрешен. Ты в системе.';
+                else if (command === 'tg') response = 'Мой тг: <a href="https://t.me/Zxcswu" target="_blank" style="color:#2AABEE">@Zxcswu</a>';
+                else if (command === 'matrix') { response = 'Пробуждение...'; document.querySelector('canvas').style.opacity = '0.8'; setTimeout(()=>document.querySelector('canvas').style.opacity='0.15', 3000); }
+                else if (command === 'clear') { termBody.querySelectorAll('.term-line').forEach(l => l.remove()); return; }
+                else if (command !== '') response = `Неизвестная команда: ${command}`;
 
-  // ====== Parallax для hero-текста ======
-  const heroBg = document.querySelector('.hero-bg-text');
-  const orb = document.querySelector('.ice-orb');
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    if (heroBg) heroBg.style.transform = `translate(-50%, calc(-50% + ${y * 0.3}px))`;
-    if (orb) orb.style.transform = `translateY(calc(-50% + ${y * 0.2}px))`;
-  });
+                if (response) {
+                    const outLine = document.createElement('div');
+                    outLine.className = 'term-line out'; outLine.innerHTML = response;
+                    termBody.insertBefore(outLine, inputLine);
+                }
+                termBody.scrollTop = termBody.scrollHeight;
+            }
+        });
 
-  // ====== Лёгкий глитч на заголовке при загрузке ======
-  const h1 = document.querySelector('.hero h1');
-  if (h1) {
-    setInterval(() => {
-      if (Math.random() > 0.85) {
-        h1.style.textShadow = `${(Math.random()-0.5)*10}px 0 var(--red), ${(Math.random()-0.5)*10}px 0 cyan`;
-        setTimeout(() => h1.style.textShadow = 'none', 80);
-      }
-    }, 800);
-  }
-</script>
+        // --- 5. Отправка формы (Безопасно через Cloudflare Worker) ---
+        const WORKER_URL = 'https://null-bot.okak3213312.workers.dev'; 
 
+        const form = document.getElementById('contact-form');
+        const btn = document.getElementById('submit-btn');
+        const toast = document.getElementById('toast');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const username = document.getElementById('username').value;
+            const message = document.getElementById('message').value || 'Без сообщения';
+
+            btn.disabled = true;
+            btn.innerText = 'Шифрование и отправка...';
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        username: username,
+                        message: message
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Заявка успешно доставлена!');
+                    form.reset();
+                } else {
+                    showToast('Ошибка отправки.');
+                }
+            } catch (error) {
+                showToast('Ошибка сети.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Отправить данные';
+            }
+        });
+
+        function showToast(msg) {
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
 </body>
 </html>
