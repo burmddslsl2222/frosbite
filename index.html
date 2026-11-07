@@ -3,594 +3,532 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS // Синдикат</title>
+    <title>NEXUS // 3D Experience</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;700&family=Fira+Code&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;400;700&family=Fira+Code&display=swap');
 
-        /* --- ЦВЕТОВЫЕ ПЕРЕМЕННЫЕ --- */
         :root {
-            --bg: #0a0a0c;
-            --text: #f0f0f0;
-            --accent: #d4af37; /* Золотой */
-            --accent-glow: rgba(212, 175, 55, 0.4);
-            --surface: rgba(255, 255, 255, 0.03);
+            --bg: #08080a;
+            --text: #ffffff;
+            --accent: #00f0ff;
+            --accent-glow: rgba(0, 240, 255, 0.4);
+            --surface: rgba(255, 255, 255, 0.05);
             --border: rgba(255, 255, 255, 0.1);
             --font-title: 'Syncopate', sans-serif;
             --font-text: 'Space Grotesk', sans-serif;
         }
 
-        /* --- ТЕМНАЯ СТОРОНА (Кроваво-красная) --- */
-        body.dark-side {
-            --bg: #050000;
+        body.hack-mode {
+            --bg: #0a0000;
             --text: #ffcccc;
-            --accent: #ff003c; 
+            --accent: #ff003c;
             --accent-glow: rgba(255, 0, 60, 0.6);
-            --surface: rgba(255, 0, 60, 0.05);
-            --border: rgba(255, 0, 60, 0.2);
+            --surface: rgba(255, 0, 60, 0.1);
+            --border: rgba(255, 0, 60, 0.3);
             --font-title: 'Fira Code', monospace;
             --font-text: 'Fira Code', monospace;
         }
 
-        /* --- БАЗА И ПРЕЛОАДЕР --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        
         body {
             background-color: var(--bg);
             color: var(--text);
             font-family: var(--font-text);
-            overflow-x: hidden;
+            overflow: hidden; /* Отключаем обычный скролл */
             cursor: none;
-            transition: background-color 1s ease, color 1s ease;
+            transition: background-color 0.8s, color 0.8s;
         }
 
-        /* Прелоадер */
-        #preloader {
-            position: fixed; inset: 0; background: #000; z-index: 10000;
+        /* --- КАСТОМНЫЙ КУРСОР --- */
+        .cursor { position: fixed; width: 40px; height: 40px; border: 1px solid var(--accent); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 10000; transition: width 0.3s, height 0.3s, background 0.3s; mix-blend-mode: difference; }
+        .cursor-dot { position: fixed; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 10001; box-shadow: 0 0 10px var(--accent); }
+        .cursor.hover { width: 80px; height: 80px; background: rgba(255,255,255,0.1); }
+
+        /* --- 3D СЛАЙДЕР --- */
+        .slider-container {
+            position: relative; width: 100vw; height: 100vh; perspective: 1200px;
+            overflow: hidden; z-index: 10;
+        }
+
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 1s ease, visibility 1s ease;
+            opacity: 0; transform: translateZ(-1000px) translateY(200px) rotateX(20deg);
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none; padding: 5vw;
         }
-        #preloader.hidden { opacity: 0; visibility: hidden; }
-        .preloader-text { font-family: var(--font-title); font-size: 24px; color: var(--accent); letter-spacing: 5px; margin-bottom: 20px; }
-        .preloader-bar { width: 200px; height: 2px; background: #333; position: relative; overflow: hidden; }
-        .preloader-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--accent); transition: width 0.1s; }
-        .preloader-percent { font-family: 'Fira Code', monospace; color: #666; margin-top: 10px; font-size: 14px; }
 
-        /* Шум / Зерно */
-        .noise {
-            position: fixed; inset: -50%; width: 200%; height: 200%;
-            pointer-events: none; z-index: 9998; opacity: 0.04;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-            animation: noiseAnim 0.5s infinite;
+        .slide.active {
+            opacity: 1; transform: translateZ(0) translateY(0) rotateX(0);
+            pointer-events: auto;
         }
-        @keyframes noiseAnim { 0% { transform: translate(0,0); } 10% { transform: translate(-5%,-10%); } 20% { transform: translate(-15%,5%); } 30% { transform: translate(7%,-25%); } 40% { transform: translate(-5%,25%); } 50% { transform: translate(-15%,10%); } 60% { transform: translate(15%,0); } 70% { transform: translate(0,15%); } 80% { transform: translate(3%,35%); } 90% { transform: translate(-10%,10%); } 100% { transform: translate(0,0); } }
 
-        /* --- КУРСОР С ХВОСТОМ --- */
-        .cursor-dot { position: fixed; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 10000; box-shadow: 0 0 10px var(--accent); }
-        .cursor-ring { position: fixed; width: 40px; height: 40px; border: 1px solid var(--accent); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 9999; transition: width 0.3s, height 0.3s, background 0.3s; }
-        .cursor-ring.hover { width: 70px; height: 70px; background: var(--accent-glow); border-color: transparent; backdrop-filter: blur(2px); }
-        .cursor-tail { position: fixed; width: 2px; height: 2px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9997; }
+        .slide.prev {
+            opacity: 0; transform: translateZ(500px) translateY(-200px) rotateX(-20deg);
+        }
 
-        /* --- 3D ФОН (Канвас) --- */
-        canvas#bg-3d { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.6; }
-        canvas#matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        body.dark-side canvas#matrix { opacity: 0.2; }
+        /* --- КОНТЕНТ СЛАЙДОВ --- */
+        .hero-title {
+            font-family: var(--font-title); font-size: clamp(50px, 12vw, 160px);
+            font-weight: 700; text-transform: uppercase; line-height: 0.9;
+            text-align: center; letter-spacing: -5px; position: relative;
+            text-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .hero-title span { color: transparent; -webkit-text-stroke: 2px var(--accent); display: block; transition: 0.3s; }
+        .hero-title span:hover { color: var(--accent); transform: scale(1.05); }
+
+        .slide-sub { font-family: 'Fira Code', monospace; color: var(--accent); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; font-size: 14px; }
+        
+        /* Стеклянные карточки */
+        .glass-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 1000px; perspective: 1000px; }
+        .glass-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+            padding: 40px; backdrop-filter: blur(10px); transform-style: preserve-3d;
+            transition: transform 0.1s; text-align: center;
+        }
+        .glass-card:hover { border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .glass-card h3 { font-family: var(--font-title); font-size: 24px; margin-bottom: 15px; transform: translateZ(30px); pointer-events: none; }
+        .glass-card p { opacity: 0.7; transform: translateZ(20px); pointer-events: none; }
+        .glass-icon { font-size: 40px; margin-bottom: 20px; color: var(--accent); transform: translateZ(40px); pointer-events: none; }
+
+        /* Аудио плеер */
+        .audio-player {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 30px;
+            padding: 30px 50px; display: flex; align-items: center; gap: 30px;
+            backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .play-btn {
+            width: 80px; height: 80px; border-radius: 50%; background: var(--accent);
+            border: none; cursor: none; display: flex; justify-content: center; align-items: center;
+            font-size: 24px; color: var(--bg); transition: transform 0.3s;
+        }
+        .play-btn:hover { transform: scale(1.1); }
+        .audio-info { display: flex; flex-direction: column; gap: 10px; }
+        .audio-info h4 { font-family: var(--font-title); font-size: 20px; letter-spacing: 2px; }
+        .visualizer { display: flex; gap: 5px; height: 40px; align-items: flex-end; }
+        .bar { width: 8px; background: var(--accent); border-radius: 4px; height: 10px; transition: height 0.1s; }
+
+        /* Скретч-карта */
+        .scratch-wrap { position: relative; width: 400px; height: 200px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
+        .scratch-prize { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: var(--surface); font-family: var(--font-title); font-size: 30px; color: var(--accent); }
+        #scratch-canvas { position: absolute; inset: 0; cursor: crosshair; z-index: 2; }
+
+        /* Форма */
+        .form-container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 500px; background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); backdrop-filter: blur(20px); }
+        .form-container input, .form-container textarea {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 10px;
+            padding: 15px; color: var(--text); font-family: var(--font-text); outline: none; transition: 0.3s;
+        }
+        .form-container input:focus, .form-container textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .submit-btn { background: var(--accent); color: var(--bg); border: none; padding: 15px; border-radius: 10px; font-weight: bold; font-family: var(--font-title); font-size: 18px; cursor: none; transition: 0.3s; }
+        .submit-btn:hover { box-shadow: 0 0 30px var(--accent-glow); transform: translateY(-3px); }
 
         /* --- НАВИГАЦИЯ --- */
-        nav {
-            position: fixed; top: 0; left: 0; width: 100%; padding: 30px 5vw;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 100; mix-blend-mode: difference;
+        .nav-dots {
+            position: fixed; right: 30px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 20px; z-index: 100;
         }
-        .logo { font-family: var(--font-title); font-size: 24px; font-weight: 700; letter-spacing: 3px; color: #fff; }
-        .menu { display: flex; gap: 40px; }
-        .menu a { color: #fff; text-decoration: none; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; position: relative; }
-        .menu a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 1px; background: #fff; transition: width 0.3s; }
-        .menu a:hover::after { width: 100%; }
-
-        /* --- ГЛАВНЫЙ ЭКРАН --- */
-        .hero {
-            height: 100vh; display: flex; flex-direction: column; justify-content: center;
-            padding: 0 10vw; position: relative; z-index: 2;
+        .dot {
+            width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--accent);
+            background: transparent; transition: 0.3s; cursor: none;
         }
-        .hero-subtitle { font-family: 'Fira Code', monospace; color: var(--accent); font-size: 14px; letter-spacing: 4px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
-        .hero-subtitle::before { content: ''; display: block; width: 50px; height: 1px; background: var(--accent); }
-        
-        .hero-title {
-            font-family: var(--font-title); font-size: clamp(60px, 12vw, 180px);
-            line-height: 0.85; font-weight: 700; text-transform: uppercase;
-            letter-spacing: -5px; position: relative;
-        }
-        .hero-title span { color: transparent; -webkit-text-stroke: 1px var(--text); transition: color 0.5s; display: inline-block; }
-        .hero-title span:hover { color: var(--accent); -webkit-text-stroke: 1px transparent; transform: translateY(-10px); }
-        body.dark-side .hero-title span { -webkit-text-stroke: 1px var(--accent); }
+        .dot.active { background: var(--accent); box-shadow: 0 0 15px var(--accent); transform: scale(1.3); }
 
-        .hero-desc { max-width: 400px; font-size: 18px; line-height: 1.6; opacity: 0.7; margin-top: 40px; border-left: 1px solid var(--accent); padding-left: 20px; }
+        /* Логотип */
+        .logo { position: fixed; top: 30px; left: 40px; z-index: 100; font-family: var(--font-title); font-size: 24px; font-weight: 700; letter-spacing: 5px; cursor: none; color: var(--text); }
+        .logo span { color: var(--accent); }
 
-        /* Магнитная кнопка */
-        .magnetic-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            padding: 20px 50px; margin-top: 50px; background: transparent;
-            border: 1px solid var(--border); color: var(--text);
-            font-family: var(--font-text); font-weight: 700; text-transform: uppercase;
-            letter-spacing: 2px; text-decoration: none; position: relative;
-            overflow: hidden; cursor: none; width: fit-content;
-        }
-        .magnetic-btn .btn-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--accent); transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1); z-index: -1; }
-        .magnetic-btn:hover .btn-bg { transform: translateY(0); }
-        .magnetic-btn:hover { color: var(--bg); border-color: var(--accent); }
+        /* Подсказка скролла */
+        .scroll-hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); font-family: 'Fira Code', monospace; font-size: 12px; color: var(--accent); letter-spacing: 3px; z-index: 100; animation: pulse 2s infinite; pointer-events: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: translate(-50%, 0); } 50% { opacity: 0.5; transform: translate(-50%, -10px); } }
 
-        /* --- БЕГУЩАЯ СТРОКА --- */
-        .marquee {
-            position: absolute; bottom: 50px; left: 0; width: 100%; overflow: hidden;
-            white-space: nowrap; z-index: 2; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-            padding: 20px 0; background: var(--surface); backdrop-filter: blur(5px);
-        }
-        .marquee-content {
-            display: inline-block; font-family: var(--font-title); font-size: 40px;
-            animation: marquee 20s linear infinite; text-transform: uppercase;
-            color: transparent; -webkit-text-stroke: 1px var(--text); opacity: 0.3;
-        }
-        .marquee-content span { color: var(--accent); -webkit-text-stroke: 0; margin: 0 30px; }
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        /* Матрица на фоне (в режиме хака) */
+        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0; transition: opacity 1s; pointer-events: none; }
+        body.hack-mode #matrix-canvas { opacity: 0.15; }
 
-        /* --- СЕКЦИИ --- */
-        section { padding: 150px 10vw; position: relative; z-index: 2; border-top: 1px solid var(--border); }
-        .section-tag { font-family: 'Fira Code', monospace; color: var(--accent); font-size: 12px; letter-spacing: 3px; margin-bottom: 20px; }
-        .section-title { font-family: var(--font-title); font-size: clamp(40px, 6vw, 80px); line-height: 1; margin-bottom: 60px; text-transform: uppercase; }
+        /* Звездное небо на фоне (обычный режим) */
+        #stars-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        body.hack-mode #stars-canvas { opacity: 0; }
 
-        /* --- СЕТКА ПРЕИМУЩЕСТВ --- */
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .feat-card {
-            background: var(--surface); border: 1px solid var(--border); padding: 40px;
-            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-            position: relative; overflow: hidden;
-        }
-        .feat-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .feat-num { font-family: 'Fira Code', monospace; color: var(--accent); font-size: 14px; margin-bottom: 20px; }
-        .feat-card h3 { font-family: var(--font-title); font-size: 24px; margin-bottom: 15px; }
-        .feat-card p { opacity: 0.6; line-height: 1.6; }
-
-        /* --- ТЕРМИНАЛ --- */
-        .terminal-box {
-            background: #000; border: 1px solid var(--border); max-width: 800px;
-            margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .term-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; background: #111; }
-        .term-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
-        .term-dot.red { background: #ff5f56; } .term-dot.yellow { background: #ffbd2e; } .term-dot.green { background: #27c93f; }
-        .term-body { padding: 30px; font-family: 'Fira Code', monospace; font-size: 14px; height: 250px; overflow-y: auto; line-height: 1.8; }
-        .term-body::-webkit-scrollbar { width: 5px; } .term-body::-webkit-scrollbar-thumb { background: var(--accent); }
-        .term-line.out { color: #888; }
-        .term-line.cmd { color: var(--text); }
-        .input-line { display: flex; margin-top: 10px; }
-        .input-line span { color: var(--accent); margin-right: 10px; }
-        .input-line input { background: transparent; border: none; color: var(--text); font-family: 'Fira Code', monospace; font-size: 14px; outline: none; flex: 1; }
-
-        /* --- ФОРМА --- */
-        .contact-wrap { display: flex; justify-content: center; }
-        .form-box { width: 100%; max-width: 600px; background: var(--surface); padding: 60px; border: 1px solid var(--border); }
-        .input-row { margin-bottom: 30px; position: relative; }
-        .input-row input, .input-row textarea {
-            width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border);
-            padding: 15px 0; color: var(--text); font-family: var(--font-text); font-size: 16px;
-            outline: none; transition: border-color 0.3s;
-        }
-        .input-row input:focus, .input-row textarea:focus { border-color: var(--accent); }
-        .input-row label { position: absolute; top: 15px; left: 0; font-family: 'Fira Code', monospace; font-size: 12px; color: #666; pointer-events: none; transition: 0.3s; }
-        .input-row input:focus ~ label, .input-row input:not(:placeholder-shown) ~ label,
-        .input-row textarea:focus ~ label, .input-row textarea:not(:placeholder-shown) ~ label { top: -10px; font-size: 10px; color: var(--accent); }
-
-        /* --- ФУТЕР --- */
-        footer { padding: 40px 10vw; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: 'Fira Code', monospace; font-size: 12px; color: #666; position: relative; z-index: 2; }
-        
-        /* Секретный триггер */
-        .secret-dot { width: 8px; height: 8px; background: #333; border-radius: 50%; cursor: pointer; transition: 0.3s; display: inline-block; }
-        .secret-dot:hover { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
-        
-        .scroll-reveal { opacity: 0; transform: translateY(50px); transition: all 1s cubic-bezier(0.77, 0, 0.175, 1); }
-        .scroll-reveal.active { opacity: 1; transform: translateY(0); }
-
-        @media (max-width: 768px) {
-            .hero-title { font-size: 60px; }
-            .menu { display: none; }
-            .form-box { padding: 30px; }
-        }
     </style>
 </head>
 <body>
 
-    <!-- Прелоадер -->
-    <div id="preloader">
-        <div class="preloader-text">СИНДИКАТ NEXUS</div>
-        <div class="preloader-bar"><div class="preloader-fill" id="preloader-fill"></div></div>
-        <div class="preloader-percent" id="preloader-percent">0%</div>
+    <canvas id="stars-canvas"></canvas>
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+
+    <div class="logo" id="logo">NEXUS<span>.</span></div>
+
+    <div class="nav-dots">
+        <div class="dot active" data-index="0"></div>
+        <div class="dot" data-index="1"></div>
+        <div class="dot" data-index="2"></div>
+        <div class="dot" data-index="3"></div>
+        <div class="dot" data-index="4"></div>
     </div>
 
-    <!-- Визуальные эффекты -->
-    <div class="noise"></div>
-    <div class="cursor-dot"></div>
-    <div class="cursor-ring" id="cursor-ring"></div>
-    <canvas id="bg-3d"></canvas>
-    <canvas id="matrix"></canvas>
+    <div class="scroll-hint" id="scroll-hint">ЛИСТАЙ ВНИЗ</div>
 
-    <!-- Навигация -->
-    <nav>
-        <div class="logo">NEXUS_</div>
-        <div class="menu">
-            <a href="#features" data-hover="true">Технологии</a>
-            <a href="#terminal" data-hover="true">Терминал</a>
-            <a href="#contact" data-hover="true">Связаться</a>
+    <div class="slider-container" id="slider">
+
+        <!-- СЛАЙД 1: ГЛАВНЫЙ -->
+        <div class="slide active">
+            <div class="slide-sub">ДОБРО ПОЖАЛОВАТЬ В БУДУЩЕЕ</div>
+            <h1 class="hero-title">
+                <span>ТВОЙ</span>
+                <span>НОВЫЙ</span>
+                <span>МИР</span>
+            </h1>
         </div>
-    </nav>
 
-    <!-- Главный экран -->
-    <header class="hero">
-        <div class="hero-subtitle">СИСТЕМА АКТИВИРОВАНА</div>
-        <h1 class="hero-title">
-            <span>БУДУЩЕЕ</span><br>
-            <span>УЖЕ</span><br>
-            <span>ЗДЕСЬ</span>
-        </h1>
-        <p class="hero-desc">NEXUS — это закрытый синдикат. Мы не продаем технологии. Мы даем доступ к тому, чего еще не существует.</p>
-        <a href="#contact" class="magnetic-btn" data-hover="true">
-            <div class="btn-bg"></div>
-            ПОЛУЧИТЬ ДОСТУП
-        </a>
-
-        <div class="marquee">
-            <div class="marquee-content">
-                БЕЗОПАСНОСТЬ <span>•</span> АНОНИМНОСТЬ <span>•</span> КВАНТОВЫЕ ТЕХНОЛОГИИ <span>•</span> NEXUS CORP <span>•</span> БЕЗОПАСНОСТЬ <span>•</span> АНОНИМНОСТЬ <span>•</span> КВАНТОВЫЕ ТЕХНОЛОГИИ <span>•</span> NEXUS CORP <span>•</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Преимущества -->
-    <section id="features" class="scroll-reveal">
-        <div class="section-tag">// ПРОТОКОЛЫ</div>
-        <h2 class="section-title">ЧТО МЫ ДЕЛАЕМ</h2>
-        <div class="features-grid">
-            <div class="feat-card">
-                <div class="feat-num">01</div>
-                <h3>Слепые узлы</h3>
-                <p>Наши сервера не хранят логи. Мы не знаем, кто вы, а вы не знаете, где мы. Полная асимметрия.</p>
-            </div>
-            <div class="feat-card">
-                <div class="feat-num">02</div>
-                <h3>Крипто-модули</h3>
-                <p>Шифрование на аппаратном уровне. Взлом математически невозможен даже для квантовых компьютеров.</p>
-            </div>
-            <div class="feat-card">
-                <div class="feat-num">03</div>
-                <h3>Тишина в эфире</h3>
-                <p>Мы маскируем трафик под обычный шум. Провайдер видит только белый шум, пока вы качаете терабайты.</p>
+        <!-- СЛАЙД 2: ТЕХНОЛОГИИ -->
+        <div class="slide">
+            <div class="slide-sub">// ПРОТОКОЛЫ</div>
+            <h2 style="font-family: var(--font-title); font-size: 40px; margin-bottom: 50px;">ЧТО МЫ ДАЕМ</h2>
+            <div class="glass-grid">
+                <div class="glass-card tilt">
+                    <div class="glass-icon">⚡</div>
+                    <h3>Скорость</h3>
+                    <p>Квантовые вычисления для твоих задач. Мгновенная обработка.</p>
+                </div>
+                <div class="glass-card tilt">
+                    <div class="glass-icon">🛡️</div>
+                    <h3>Защита</h3>
+                    <p>Твой цифровой след стерт. Полная анонимность в сети.</p>
+                </div>
+                <div class="glass-card tilt">
+                    <div class="glass-icon">🌐</div>
+                    <h3>Связь</h3>
+                    <p>Обход любых блокировок. Прямой доступ к закрытым узлам.</p>
+                </div>
             </div>
         </div>
-    </section>
 
-    <!-- Терминал -->
-    <section id="terminal" class="scroll-reveal" style="display: flex; flex-direction: column; align-items: center;">
-        <div class="section-tag" style="align-self: flex-start; margin-left: 10vw;">// КОНСОЛЬ</div>
-        <h2 class="section-title" style="align-self: flex-start; margin-left: 10vw; margin-bottom: 40px;">СИСТЕМНЫЙ ВХОД</h2>
-        <div class="terminal-box" style="width: 80vw;">
-            <div class="term-header"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div></div>
-            <div class="term-body" id="term-body">
-                <div class="term-line out">NEXUS OS v4.0.1 initialization...</div>
-                <div class="term-line out">Secure connection established.</div>
-                <div class="term-line out" style="color: var(--accent);">Введите 'help' для списка команд.</div>
-                <div class="input-line"><span>root@nexus:~#</span><input type="text" id="term-input" autocomplete="off" autofocus></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Форма -->
-    <section id="contact" class="scroll-reveal">
-        <div class="contact-wrap">
-            <div class="form-box">
-                <div class="section-tag">// СВЯЗЬ</div>
-                <h2 class="section-title" style="font-size: 40px; margin-bottom: 40px;">ОСТАВИТЬ ЗАЯВКУ</h2>
-                <form id="contact-form">
-                    <div class="input-row">
-                        <input type="text" id="name" required placeholder=" ">
-                        <label>ИМЯ / ПСЕВДОНИМ</label>
+        <!-- СЛАЙД 3: АУДИО -->
+        <div class="slide">
+            <div class="slide-sub">// АУДИО-МОДУЛЬ</div>
+            <h2 style="font-family: var(--font-title); font-size: 40px; margin-bottom: 50px;">СИНТЕЗ ЗВУКА</h2>
+            <div class="audio-player">
+                <button class="play-btn" id="play-btn">▶</button>
+                <div class="audio-info">
+                    <h4>NEXUS GENERATOR</h4>
+                    <div class="visualizer" id="visualizer">
+                        <!-- Бары для визуализации -->
                     </div>
-                    <div class="input-row">
-                        <input type="text" id="username" required placeholder=" ">
-                        <label>TELEGRAM КОНТАКТ</label>
-                    </div>
-                    <div class="input-row">
-                        <textarea id="message" rows="3" placeholder=" "></textarea>
-                        <label>СООБЩЕНИЕ (ОПЦИОНАЛЬНО)</label>
-                    </div>
-                    <button type="submit" class="magnetic-btn" id="submit-btn" data-hover="true" style="width: 100%; margin-top: 20px;">
-                        <div class="btn-bg"></div>
-                        ОТПРАВИТЬ
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
-    </section>
 
-    <!-- Футер -->
-    <footer>
-        <div>NEXUS CORP © 2026</div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span>DESIGNED BY ZXCSWU</span>
-            <div class="secret-dot" id="secret-trigger" title="???"></div>
+        <!-- СЛАЙД 4: СКРЕТЧ-КАРТА -->
+        <div class="slide">
+            <div class="slide-sub">// СЕКРЕТНЫЙ ДОСТУП</div>
+            <h2 style="font-family: var(--font-title); font-size: 40px; margin-bottom: 50px;">СОТРИ ЗАЩИТУ</h2>
+            <div class="scratch-wrap">
+                <div class="scratch-prize">ПРОМОКОД: NEXUS-99</div>
+                <canvas id="scratch-canvas"></canvas>
+            </div>
         </div>
-    </footer>
+
+        <!-- СЛАЙД 5: ФОРМА -->
+        <div class="slide">
+            <div class="slide-sub">// СВЯЗЬ С ОПЕРАТОРОМ</div>
+            <h2 style="font-family: var(--font-title); font-size: 40px; margin-bottom: 30px;">ОСТАВИТЬ ЗАЯВКУ</h2>
+            <div class="form-container">
+                <input type="text" id="name" placeholder="Твой Псевдоним" required>
+                <input type="text" id="username" placeholder="Telegram (@username)" required>
+                <textarea id="message" rows="3" placeholder="Сообщение..."></textarea>
+                <button class="submit-btn" id="submit-btn">ОТПРАВИТЬ ДАННЫЕ</button>
+            </div>
+        </div>
+
+    </div>
 
     <script>
         // ==========================================
-        // 1. ПРЕЛОАДЕР
+        // 1. КАСТОМНЫЙ КУРСОР
         // ==========================================
-        let progress = 0;
-        const fill = document.getElementById('preloader-fill');
-        const percent = document.getElementById('preloader-percent');
-        const preloader = document.getElementById('preloader');
-        const preloaderInterval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 100) progress = 100;
-            fill.style.width = progress + '%';
-            percent.innerText = Math.floor(progress) + '%';
-            if (progress === 100) {
-                clearInterval(preloaderInterval);
-                setTimeout(() => {
-                    preloader.classList.add('hidden');
-                    document.body.style.overflowY = 'auto'; // Включаем скролл
-                }, 500);
-            }
-        }, 100);
-        document.body.style.overflowY = 'hidden'; // Блокируем скролл при загрузке
-
-        // ==========================================
-        // 2. ЗВУКИ (Web Audio API)
-        // ==========================================
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            if (type === 'click') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'success') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            }
-        }
-
-        // ==========================================
-        // 3. КУРСОР
-        // ==========================================
-        const dot = document.querySelector('.cursor-dot');
-        const ring = document.getElementById('cursor-ring');
-        let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+        const cursor = document.getElementById('cursor');
+        const cursorDot = document.getElementById('cursor-dot');
+        let mouseX = 0, mouseY = 0, curX = 0, curY = 0;
 
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX; mouseY = e.clientY;
-            dot.style.left = mouseX + 'px'; dot.style.top = mouseY + 'px';
-            // Создаем хвост (только на десктопе для производительности)
-            if (Math.random() > 0.7 && window.innerWidth > 768) createTail(mouseX, mouseY);
+            cursorDot.style.left = mouseX + 'px'; cursorDot.style.top = mouseY + 'px';
         });
 
-        function createTail(x, y) {
-            const tail = document.createElement('div');
-            tail.className = 'cursor-tail';
-            tail.style.left = x + 'px'; tail.style.top = y + 'px';
-            document.body.appendChild(tail);
-            const angle = Math.random() * Math.PI * 2;
-            const velocity = 20 + Math.random() * 30;
-            tail.animate([
-                { transform: 'translate(0, 0) scale(1)', opacity: 0.8 },
-                { transform: `translate(${Math.cos(angle)*velocity}px, ${Math.sin(angle)*velocity}px) scale(0)`, opacity: 0 }
-            ], { duration: 800, easing: 'ease-out' }).onfinish = () => tail.remove();
-        }
-
         function animateCursor() {
-            ringX += (mouseX - ringX) * 0.15;
-            ringY += (mouseY - ringY) * 0.15;
-            ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
+            curX += (mouseX - curX) * 0.15;
+            curY += (mouseY - curY) * 0.15;
+            cursor.style.left = curX + 'px'; cursor.style.top = curY + 'px';
             requestAnimationFrame(animateCursor);
         }
         animateCursor();
 
-        // Эффекты при наведении
-        document.querySelectorAll('a, button, input, textarea, [data-hover="true"]').forEach(el => {
-            el.addEventListener('mouseenter', () => { ring.classList.add('hover'); playSound('click'); });
-            el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+        document.querySelectorAll('a, button, input, textarea, .dot, .glass-card, .logo, #scratch-canvas').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
         });
 
         // ==========================================
-        // 4. 3D ЛЕТАЮЩИЕ КУБЫ (Фон)
+        // 2. 3D СЛАЙДЕР (Скролл и Свайпы)
         // ==========================================
-        const canvas3d = document.getElementById('bg-3d');
-        const ctx3d = canvas3d.getContext('2d');
-        let w, h;
-        let cubes = [];
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        const scrollHint = document.getElementById('scroll-hint');
+        let currentSlide = 0;
+        let isAnimating = false;
+
+        function goToSlide(index) {
+            if (index < 0 || index >= slides.length || isAnimating) return;
+            isAnimating = true;
+
+            // Определяем направление
+            const direction = index > currentSlide ? 'down' : 'up';
+
+            // Убираем активный класс у текущего
+            slides[currentSlide].classList.remove('active');
+            slides[currentSlide].classList.add(direction === 'down' ? 'prev' : 'next');
+            dots[currentSlide].classList.remove('active');
+
+            // Добавляем активный класс новому
+            currentSlide = index;
+            slides[currentSlide].classList.remove('prev', 'next');
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+
+            // Скрываем подсказку скролла
+            if (currentSlide > 0) scrollHint.style.opacity = '0';
+
+            setTimeout(() => { isAnimating = false; }, 800);
+        }
+
+        // Скролл колесиком
+        window.addEventListener('wheel', (e) => {
+            if (isAnimating) return;
+            if (e.deltaY > 0) goToSlide(currentSlide + 1);
+            else if (e.deltaY < 0) goToSlide(currentSlide - 1);
+        });
+
+        // Клик по точкам навигации
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => goToSlide(index));
+        });
+
+        // Свайпы для мобилок
+        let touchStartY = 0;
+        window.addEventListener('touchstart', e => touchStartY = e.touches[0].clientY);
+        window.addEventListener('touchend', e => {
+            const touchEndY = e.changedTouches[0].clientY;
+            if (touchStartY - touchEndY > 50) goToSlide(currentSlide + 1);
+            if (touchStartY - touchEndY < -50) goToSlide(currentSlide - 1);
+        });
+
+        // ==========================================
+        // 3. 3D ЭФФЕКТ КАРТОЧЕК (Tilt)
+        // ==========================================
+        document.querySelectorAll('.tilt').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -15;
+                const rotateY = ((x - centerX) / centerX) * 15;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0) rotateY(0) scale(1)`;
+            });
+        });
+
+        // ==========================================
+        // 4. АУДИО-СИНТЕЗАТОР (Web Audio API)
+        // ==========================================
+        let audioCtx, isPlaying = false, playInterval;
+        const playBtn = document.getElementById('play-btn');
+        const visualizer = document.getElementById('visualizer');
+        const bars = [];
         
-        function init3d() {
-            w = canvas3d.width = window.innerWidth;
-            h = canvas3d.height = window.innerHeight;
-            cubes = [];
-            for(let i=0; i<15; i++) {
-                cubes.push({
-                    x: Math.random() * w, y: Math.random() * h,
-                    size: Math.random() * 50 + 20,
-                    speedX: (Math.random() - 0.5) * 0.5, speedY: (Math.random() - 0.5) * 0.5,
-                    angle: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 0.02
-                });
-            }
+        // Создаем бары для визуализации
+        for(let i=0; i<10; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            visualizer.appendChild(bar);
+            bars.push(bar);
         }
-        init3d();
-        window.addEventListener('resize', init3d);
 
-        function draw3d() {
-            ctx3d.clearRect(0, 0, w, h);
-            const color = document.body.classList.contains('dark-side') ? 'rgba(255,0,60,0.1)' : 'rgba(212,175,55,0.05)';
-            ctx3d.strokeStyle = color;
-            ctx3d.lineWidth = 1.5;
-
-            cubes.forEach(c => {
-                c.x += c.speedX; c.y += c.speedY; c.angle += c.spin;
-                // Отскок от краев
-                if(c.x < 0 || c.x > w) c.speedX *= -1;
-                if(c.y < 0 || c.y > h) c.speedY *= -1;
-
-                ctx3d.save();
-                ctx3d.translate(c.x, c.y);
-                ctx3d.rotate(c.angle);
-                ctx3d.strokeRect(-c.size/2, -c.size/2, c.size, c.size);
-                // Внутренний куб для 3D эффекта
-                ctx3d.beginPath();
-                ctx3d.moveTo(-c.size/2, -c.size/2); ctx3d.lineTo(c.size/2, c.size/2);
-                ctx3d.moveTo(c.size/2, -c.size/2); ctx3d.lineTo(-c.size/2, c.size/2);
-                ctx3d.stroke();
-                ctx3d.restore();
-            });
-            requestAnimationFrame(draw3d);
-        }
-        draw3d();
-
-        // ==========================================
-        // 5. МАГНИТНЫЕ КНОПКИ
-        // ==========================================
-        document.querySelectorAll('.magnetic-btn').forEach(btn => {
-            btn.addEventListener('mousemove', (e) => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
-                btn.querySelector('.btn-bg').style.transform = 'translateY(0)';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = `translate(0px, 0px)`;
-                btn.querySelector('.btn-bg').style.transform = 'translateY(100%)';
-            });
-        });
-
-        // ==========================================
-        // 6. СКРОЛЛ АНИМАЦИИ
-        // ==========================================
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('active');
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
-
-        // ==========================================
-        // 7. СЕКРЕТНАЯ ТЕМНАЯ СТОРОНА
-        // ==========================================
-        // Комбинация S-I-T-H
-        let keys = "";
-        document.addEventListener('keydown', (e) => {
-            keys += e.key.toLowerCase();
-            if (keys.includes("sith")) { toggleDarkSide(); keys = ""; }
-            if (keys.length > 10) keys = keys.slice(-5);
-        });
-
-        document.getElementById('secret-trigger').addEventListener('click', toggleDarkSide);
-
-        function toggleDarkSide() {
-            document.body.classList.toggle('dark-side');
-            playSound('success');
-            if(document.body.classList.contains('dark-side')) {
-                document.title = "DARK SIDE ACTIVE";
-                // Меняем текст в терминале
-                const term = document.getElementById('term-body');
-                const line = document.createElement('div');
-                line.className = 'term-line out'; line.style.color = 'var(--accent)';
-                line.innerText = "ВНИМАНИЕ: ПРОТОКОЛ 'SITH' АКТИВИРОВАН. СИСТЕМА ВЗЛОМАНА.";
-                term.insertBefore(line, document.querySelector('.input-line'));
-                term.scrollTop = term.scrollHeight;
+        playBtn.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            if (isPlaying) {
+                isPlaying = false;
+                clearInterval(playInterval);
+                playBtn.innerText = '▶';
+                bars.forEach(b => b.style.height = '10px');
             } else {
-                document.title = "NEXUS // Синдикат";
+                isPlaying = true;
+                playBtn.innerText = '■';
+                
+                // Генератор случайных битов
+                playInterval = setInterval(() => {
+                    if(audioCtx.state === 'suspended') audioCtx.resume();
+                    
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    
+                    osc.type = 'sawtooth';
+                    const freq = 100 + Math.random() * 400;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    
+                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                    
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+
+                    // Анимация визуализатора
+                    bars.forEach(b => {
+                        b.style.height = (Math.random() * 40 + 10) + 'px';
+                    });
+                }, 150);
             }
+        });
+
+        // ==========================================
+        // 5. СКРЕТЧ-КАРТА
+        // ==========================================
+        const scratchCanvas = document.getElementById('scratch-canvas');
+        const sCtx = scratchCanvas.getContext('2d');
+        scratchCanvas.width = 400; scratchCanvas.height = 200;
+        
+        // Заполняем серым слоем
+        sCtx.fillStyle = '#333';
+        sCtx.fillRect(0, 0, 400, 200);
+        sCtx.fillStyle = '#888';
+        sCtx.font = '24px "Fira Code"';
+        sCtx.textAlign = 'center'; sCtx.textBaseline = 'middle';
+        sCtx.fillText('СТЕРЕТЬ', 200, 100);
+
+        let isDrawing = false;
+        scratchCanvas.addEventListener('mousedown', () => isDrawing = true);
+        scratchCanvas.addEventListener('mouseup', () => isDrawing = false);
+        scratchCanvas.addEventListener('mouseout', () => isDrawing = false);
+        
+        scratchCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = scratchCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            sCtx.globalCompositeOperation = 'destination-out';
+            sCtx.beginPath();
+            sCtx.arc(x, y, 30, 0, Math.PI * 2);
+            sCtx.fill();
+        });
+
+        // ==========================================
+        // 6. СЕКРЕТНЫЙ РЕЖИМ (HACK)
+        // ==========================================
+        let keyBuffer = "";
+        document.addEventListener('keydown', (e) => {
+            keyBuffer += e.key.toLowerCase();
+            if (keyBuffer.includes("hack")) { toggleHackMode(); keyBuffer = ""; }
+            if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-5);
+        });
+
+        let logoClicks = 0;
+        document.getElementById('logo').addEventListener('click', () => {
+            logoClicks++;
+            if (logoClicks >= 3) { toggleHackMode(); logoClicks = 0; }
+            setTimeout(() => logoClicks = 0, 1000);
+        });
+
+        function toggleHackMode() {
+            document.body.classList.toggle('hack-mode');
+            playBeep();
+        }
+
+        function playBeep() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
         }
 
         // ==========================================
-        // 8. МАТРИЦА (Только для темной стороны)
+        // 7. ФОНОВЫЕ ЭФФЕКТЫ (Звезды и Матрица)
         // ==========================================
-        const cMatrix = document.getElementById('matrix');
-        const ctxMatrix = cMatrix.getContext('2d');
-        cMatrix.width = window.innerWidth; cMatrix.height = window.innerHeight;
+        const starsCanvas = document.getElementById('stars-canvas');
+        const stCtx = starsCanvas.getContext('2d');
+        starsCanvas.width = window.innerWidth; starsCanvas.height = window.innerHeight;
+        const stars = [];
+        for(let i=0; i<100; i++) stars.push({x: Math.random()*starsCanvas.width, y: Math.random()*starsCanvas.height, z: Math.random()*2});
+
+        function drawStars() {
+            stCtx.clearRect(0,0,starsCanvas.width, starsCanvas.height);
+            stCtx.fillStyle = 'rgba(255,255,255,0.5)';
+            stars.forEach(s => {
+                stCtx.beginPath(); stCtx.arc(s.x, s.y, s.z, 0, Math.PI*2); stCtx.fill();
+                s.y += s.z * 0.5;
+                if(s.y > starsCanvas.height) s.y = 0;
+            });
+            requestAnimationFrame(drawStars);
+        }
+        drawStars();
+
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        const mCtx = matrixCanvas.getContext('2d');
+        matrixCanvas.width = window.innerWidth; matrixCanvas.height = window.innerHeight;
         const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789'.split('');
-        const fSize = 16; const cols = cMatrix.width / fSize;
-        const dMatrix = []; for(let x=0; x<cols; x++) dMatrix[x] = 1;
+        const fontSize = 16; const cols = matrixCanvas.width / fontSize;
+        const drops = []; for(let x=0; x<cols; x++) drops[x]=1;
 
         function drawMatrix() {
-            if(document.body.classList.contains('dark-side')) {
-                ctxMatrix.fillStyle = 'rgba(5, 0, 0, 0.05)';
-                ctxMatrix.fillRect(0, 0, cMatrix.width, cMatrix.height);
-                ctxMatrix.fillStyle = '#ff003c'; ctxMatrix.font = fSize + 'px monospace';
-                for(let i=0; i<dMatrix.length; i++) {
+            if(document.body.classList.contains('hack-mode')) {
+                mCtx.fillStyle = 'rgba(10, 0, 0, 0.05)';
+                mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+                mCtx.fillStyle = '#ff003c'; mCtx.font = fontSize + 'px monospace';
+                for(let i=0; i<drops.length; i++) {
                     const text = chars[Math.floor(Math.random() * chars.length)];
-                    ctxMatrix.fillText(text, i * fSize, dMatrix[i] * fSize);
-                    if(dMatrix[i] * fSize > cMatrix.height && Math.random() > 0.975) dMatrix[i] = 0;
-                    dMatrix[i]++;
+                    mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if(drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
                 }
             }
+            requestAnimationFrame(drawMatrix);
         }
-        setInterval(drawMatrix, 33);
+        drawMatrix();
+
         window.addEventListener('resize', () => {
-            cMatrix.width = window.innerWidth; cMatrix.height = window.innerHeight;
+            starsCanvas.width = window.innerWidth; starsCanvas.height = window.innerHeight;
+            matrixCanvas.width = window.innerWidth; matrixCanvas.height = window.innerHeight;
         });
 
         // ==========================================
-        // 9. ТЕРМИНАЛ
-        // ==========================================
-        const termInput = document.getElementById('term-input');
-        const termBody = document.getElementById('term-body');
-
-        termInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const cmd = this.value.trim().toLowerCase(); this.value = '';
-                const newLine = document.createElement('div');
-                newLine.className = 'term-line cmd';
-                newLine.innerHTML = `<span style="color:var(--accent)">root@nexus:~#</span> ${cmd}`;
-                const inputLine = document.querySelector('.input-line');
-                termBody.insertBefore(newLine, inputLine);
-
-                let res = '';
-                if (cmd === 'help') res = 'Команды: help, hack, clear, dark, matrix';
-                else if (cmd === 'hack') res = 'Взлом Пентагона... 1%... 50%... 100%. Доступ разрешен.';
-                else if (cmd === 'clear') { termBody.querySelectorAll('.term-line').forEach(l => l.remove()); return; }
-                else if (cmd === 'dark') { toggleDarkSide(); res = 'Переключение протокола...'; }
-                else if (cmd === 'matrix') { document.querySelector('canvas#matrix').style.opacity = '1'; setTimeout(()=>document.querySelector('canvas#matrix').style.opacity='0.2', 3000); res='Пробуждение...'; }
-                else if (cmd !== '') res = `Команда не найдена: ${cmd}`;
-
-                if (res) {
-                    const outLine = document.createElement('div');
-                    outLine.className = 'term-line out'; outLine.innerText = res;
-                    termBody.insertBefore(outLine, inputLine);
-                }
-                termBody.scrollTop = termBody.scrollHeight;
-            }
-        });
-
-        // ==========================================
-        // 10. ОТПРАВКА ФОРМЫ (Cloudflare Worker)
+        // 8. ОТПРАВКА ФОРМЫ (Cloudflare Worker)
         // ==========================================
         const WORKER_URL = 'https://null-bot.okak3213312.workers.dev'; 
-        const form = document.getElementById('contact-form');
-        const btn = document.getElementById('submit-btn');
+        const form = document.querySelector('.form-container');
+        const submitBtn = document.getElementById('submit-btn');
 
-        form.addEventListener('submit', async (e) => {
+        submitBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const username = document.getElementById('username').value;
             const message = document.getElementById('message').value || 'Без сообщения';
 
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<div class="btn-bg" style="transform:translateY(0)"></div>ОТПРАВКА...';
-            btn.disabled = true;
+            if(!name || !username) { alert('Заполни имя и контакт!'); return; }
+
+            submitBtn.innerText = 'ОТПРАВКА...';
 
             try {
                 const response = await fetch(WORKER_URL, {
@@ -599,17 +537,23 @@
                     body: JSON.stringify({ name: name, username: username, message: message })
                 });
                 if (response.ok) {
-                    playSound('success');
-                    btn.innerHTML = '<div class="btn-bg" style="transform:translateY(0)"></div>УСПЕШНО!';
-                    form.reset();
-                    setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+                    playBeep();
+                    submitBtn.innerText = 'УСПЕШНО!';
+                    submitBtn.style.background = '#00ff00';
+                    setTimeout(() => {
+                        submitBtn.innerText = 'ОТПРАВИТЬ ДАННЫЕ';
+                        submitBtn.style.background = 'var(--accent)';
+                        document.getElementById('name').value = '';
+                        document.getElementById('username').value = '';
+                        document.getElementById('message').value = '';
+                    }, 3000);
                 } else {
-                    btn.innerHTML = '<div class="btn-bg" style="transform:translateY(0)"></div>ОШИБКА';
-                    setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+                    submitBtn.innerText = 'ОШИБКА';
+                    setTimeout(() => submitBtn.innerText = 'ОТПРАВИТЬ ДАННЫЕ', 3000);
                 }
             } catch (error) {
-                btn.innerHTML = '<div class="btn-bg" style="transform:translateY(0)"></div>ОШИБКА СЕТИ';
-                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+                submitBtn.innerText = 'ОШИБКА СЕТИ';
+                setTimeout(() => submitBtn.innerText = 'ОТПРАВИТЬ ДАННЫЕ', 3000);
             }
         });
     </script>
