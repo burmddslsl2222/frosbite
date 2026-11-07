@@ -21,15 +21,12 @@
             color: var(--neon);
             font-family: 'Fira Code', monospace;
             overflow-x: hidden;
-            cursor: none; /* Скрываем стандартный курсор */
-            transition: background-color 0.5s, filter 0.5s;
+            cursor: none;
+            transition: background-color 0.3s;
         }
 
         /* --- Пасхалка: Режим Бога --- */
-        body.god-mode {
-            background-color: #1a0000;
-            filter: hue-rotate(180deg) drop-shadow(0 0 10px red);
-        }
+        body.god-mode { background-color: #1a0000; }
         body.god-mode .cursor-dot { width: 20px; height: 20px; background: red; }
         body.god-mode .cursor-ring { width: 60px; height: 60px; border-color: red; }
 
@@ -45,54 +42,25 @@
             border-radius: 50%; pointer-events: none;
             transform: translate(-50%, -50%); z-index: 9999;
             box-shadow: 0 0 10px var(--neon);
-            transition: width 0.2s, height 0.2s, background 0.2s;
+            transition: width 0.2s, height 0.2s;
         }
         .cursor-ring {
             position: fixed; width: 30px; height: 30px; border: 1px solid var(--neon);
             border-radius: 50%; pointer-events: none;
             transform: translate(-50%, -50%); z-index: 9998;
-            transition: width 0.2s, height 0.2s, background 0.2s, border-color 0.2s;
+            transition: width 0.2s, height 0.2s, background 0.2s;
         }
-        .cursor-ring.active {
-            width: 50px; height: 50px;
-            background: rgba(0,255,65,0.2); border-color: #fff;
-        }
+        .cursor-ring.active { width: 50px; height: 50px; background: rgba(0,255,65,0.2); border-color: #fff; }
 
         /* --- Матричный дождь --- */
-        canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; opacity: 0.15; pointer-events: none;
-        }
+        canvas#matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.15; pointer-events: none; }
 
-        /* --- Глитч-заголовки --- */
-        .glitch {
-            font-family: 'Syne', sans-serif; font-weight: 800;
-            text-transform: uppercase; position: relative;
-            font-size: clamp(40px, 8vw, 120px); line-height: 0.9;
-            letter-spacing: -2px;
-        }
-        .glitch::before, .glitch::after {
-            content: attr(data-text); position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%; background: var(--dark);
-        }
-        .glitch::before {
-            left: 2px; text-shadow: -2px 0 red;
-            clip: rect(24px, 550px, 90px, 0);
-            animation: glitch-anim 3s infinite linear alternate-reverse;
-        }
-        .glitch::after {
-            left: -2px; text-shadow: -2px 0 blue;
-            clip: rect(85px, 550px, 140px, 0);
-            animation: glitch-anim 2s infinite linear alternate-reverse;
-        }
-        @keyframes glitch-anim {
-            0% { clip: rect(10px, 9999px, 80px, 0); }
-            20% { clip: rect(30px, 9999px, 20px, 0); }
-            40% { clip: rect(60px, 9999px, 50px, 0); }
-            60% { clip: rect(10px, 9999px, 90px, 0); }
-            80% { clip: rect(80px, 9999px, 10px, 0); }
-            100% { clip: rect(50px, 9999px, 30px, 0); }
-        }
+        /* --- Глитч --- */
+        .glitch { font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; position: relative; font-size: clamp(40px, 8vw, 100px); line-height: 0.9; letter-spacing: -2px; }
+        .glitch::before, .glitch::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); }
+        .glitch::before { left: 2px; text-shadow: -2px 0 red; clip: rect(24px, 550px, 90px, 0); animation: glitch-anim 3s infinite linear alternate-reverse; }
+        .glitch::after { left: -2px; text-shadow: -2px 0 blue; clip: rect(85px, 550px, 140px, 0); animation: glitch-anim 2s infinite linear alternate-reverse; }
+        @keyframes glitch-anim { 0% { clip: rect(10px, 9999px, 80px, 0); } 20% { clip: rect(30px, 9999px, 20px, 0); } 40% { clip: rect(60px, 9999px, 50px, 0); } 60% { clip: rect(10px, 9999px, 90px, 0); } 80% { clip: rect(80px, 9999px, 10px, 0); } 100% { clip: rect(50px, 9999px, 30px, 0); } }
 
         /* --- Навигация --- */
         nav {
@@ -104,176 +72,87 @@
         .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; cursor: pointer; user-select: none; }
         .logo span { color: #fff; }
         
-        .nav-right { display: flex; align-items: center; gap: 30px; }
-        .nav-links a {
-            color: var(--gray); text-decoration: none; font-size: 14px;
-            text-transform: uppercase; transition: 0.3s; position: relative;
-        }
-        .nav-links a::after {
-            content: ''; position: absolute; bottom: -5px; left: 0;
-            width: 0%; height: 1px; background: var(--neon); transition: 0.3s;
-        }
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .clock { color: var(--neon); font-size: 14px; font-weight: bold; border: 1px solid var(--neon); padding: 5px 15px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,255,65,0.2); }
+        
+        .nav-links a { color: var(--gray); text-decoration: none; font-size: 14px; text-transform: uppercase; transition: 0.3s; position: relative; margin-left: 15px; }
         .nav-links a:hover { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
-        .nav-links a:hover::after { width: 100%; }
 
-        /* --- Кнопка Telegram --- */
-        .tg-btn {
-            display: flex; align-items: center; gap: 8px;
-            background: rgba(42, 171, 238, 0.1); border: 1px solid var(--tg);
-            color: var(--tg); padding: 10px 20px; text-decoration: none;
-            font-size: 14px; font-weight: bold; transition: 0.3s; border-radius: 4px;
-        }
-        .tg-btn:hover { background: var(--tg); color: #fff; box-shadow: 0 0 20px var(--tg); transform: scale(1.05); }
+        .tg-btn { display: flex; align-items: center; gap: 8px; background: rgba(42, 171, 238, 0.1); border: 1px solid var(--tg); color: var(--tg); padding: 8px 16px; text-decoration: none; font-size: 13px; font-weight: bold; transition: 0.3s; border-radius: 4px; }
+        .tg-btn:hover { background: var(--tg); color: #fff; box-shadow: 0 0 20px var(--tg); }
 
         /* --- Главный экран --- */
-        .hero {
-            min-height: 90vh; display: flex; flex-direction: column;
-            justify-content: center; padding: 0 5vw; position: relative; z-index: 2;
-        }
-        .hero-tag {
-            color: var(--gray); margin-bottom: 20px; font-size: 14px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .hero-tag::before {
-            content: ''; display: inline-block; width: 10px; height: 10px;
-            background: var(--danger); border-radius: 50%;
-            box-shadow: 0 0 15px var(--danger); animation: pulse 1s infinite;
-        }
+        .hero { min-height: 85vh; display: flex; flex-direction: column; justify-content: center; padding: 0 5vw; position: relative; z-index: 2; }
+        .hero-tag { color: var(--gray); margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .hero-tag::before { content: ''; display: inline-block; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 15px var(--danger); animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
-
-        .hero p {
-            max-width: 600px; margin-top: 40px; color: var(--gray);
-            font-size: 18px; border-left: 2px solid var(--neon); padding-left: 20px;
-        }
+        .hero p { max-width: 600px; margin-top: 30px; color: var(--gray); font-size: 18px; border-left: 2px solid var(--neon); padding-left: 20px; }
 
         /* --- Кнопки --- */
-        .btn {
-            display: inline-block; padding: 15px 40px;
-            border: 1px solid var(--neon); color: var(--neon);
-            text-decoration: none; text-transform: uppercase;
-            letter-spacing: 2px; font-weight: 700; position: relative;
-            overflow: hidden; transition: 0.3s; background: transparent;
-            font-size: 16px; z-index: 1; margin-top: 40px;
-        }
-        .btn::before {
-            content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; background: var(--neon);
-            transform: scaleX(0); transform-origin: right; transition: transform 0.4s ease;
-            z-index: -1;
-        }
+        .btn { display: inline-block; padding: 15px 40px; border: 1px solid var(--neon); color: var(--neon); text-decoration: none; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; position: relative; overflow: hidden; transition: 0.3s; background: transparent; font-size: 16px; z-index: 1; margin-top: 30px; cursor: pointer; }
+        .btn::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--neon); transform: scaleX(0); transform-origin: right; transition: transform 0.4s ease; z-index: -1; }
         .btn:hover::before { transform: scaleX(1); transform-origin: left; }
         .btn:hover { color: var(--dark); box-shadow: 0 0 30px var(--neon); }
+        
+        .sos-btn { border-color: var(--danger); color: var(--danger); margin-left: 20px; }
+        .sos-btn:hover { box-shadow: 0 0 30px var(--danger); color: var(--dark); }
+        .sos-btn::before { background: var(--danger); }
+        
+        /* --- Скретч-карта --- */
+        .scratch-section { padding: 50px 5vw; text-align: center; z-index: 2; position: relative; border-top: 1px solid #222;}
+        .scratch-container { position: relative; width: 300px; height: 100px; margin: 20px auto; border-radius: 8px; overflow: hidden; border: 1px solid var(--neon); }
+        .scratch-prize { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #111; color: #fff; font-size: 20px; font-weight: bold; letter-spacing: 2px; }
+        .scratch-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; z-index: 2; }
 
-        /* --- Интерактивные карточки (3D эффект) --- */
-        .features {
-            padding: 100px 5vw; display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px; position: relative; z-index: 2;
-            perspective: 1000px;
-        }
-        .feature {
-            padding: 40px; border: 1px solid #222; transition: 0.1s;
-            background: rgba(10, 10, 10, 0.8); position: relative;
-            transform-style: preserve-3d; border-radius: 8px; overflow: hidden;
-        }
-        .feature::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(0,255,65,0.15) 0%, transparent 60%);
-            opacity: 0; transition: opacity 0.3s; pointer-events: none;
-        }
+        /* --- Карточки --- */
+        .features { padding: 80px 5vw; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; position: relative; z-index: 2; perspective: 1000px; }
+        .feature { padding: 40px; border: 1px solid #222; background: rgba(10, 10, 10, 0.8); position: relative; transform-style: preserve-3d; border-radius: 8px; overflow: hidden; transition: 0.3s; }
+        .feature::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(0,255,65,0.15) 0%, transparent 60%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .feature:hover { border-color: var(--neon); box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
         .feature:hover::after { opacity: 1; }
-        .feature h3 {
-            font-family: 'Syne', sans-serif; font-size: 24px;
-            margin-bottom: 15px; color: #fff; transform: translateZ(30px);
-        }
+        .feature h3 { font-family: 'Syne', sans-serif; font-size: 24px; margin-bottom: 15px; color: #fff; transform: translateZ(30px); }
         .feature p { color: var(--gray); font-size: 15px; transform: translateZ(20px); }
 
         /* --- Терминал --- */
         .terminal-section { padding: 80px 5vw; position: relative; z-index: 2; }
-        .terminal {
-            background: #000; border: 1px solid rgba(0, 255, 65, 0.3);
-            border-radius: 8px; max-width: 800px; margin: 0 auto;
-            box-shadow: 0 0 50px rgba(0, 255, 65, 0.05);
-        }
-        .term-header {
-            background: #111; padding: 10px 20px; display: flex; gap: 8px;
-            border-bottom: 1px solid rgba(0, 255, 65, 0.3);
-        }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
-        .term-body {
-            padding: 30px; font-size: 16px; line-height: 1.8;
-            height: 250px; overflow-y: auto;
-        }
-        .term-body::-webkit-scrollbar { width: 8px; }
-        .term-body::-webkit-scrollbar-thumb { background: var(--neon); }
+        .terminal { background: #000; border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 8px; max-width: 800px; margin: 0 auto; box-shadow: 0 0 50px rgba(0, 255, 65, 0.05); }
+        .term-header { background: #111; padding: 10px 20px; display: flex; gap: 8px; border-bottom: 1px solid rgba(0, 255, 65, 0.3); }
+        .dot { width: 12px; height: 12px; border-radius: 50%; } .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
+        .term-body { padding: 30px; font-size: 16px; line-height: 1.8; height: 250px; overflow-y: auto; }
+        .term-body::-webkit-scrollbar { width: 8px; } .term-body::-webkit-scrollbar-thumb { background: var(--neon); }
         .prompt { color: #fff; } .cmd { color: var(--neon); } .out { color: var(--gray); }
         .input-line { display: flex; align-items: center; margin-top: 10px; }
-        .input-line input {
-            background: transparent; border: none; color: var(--neon);
-            font-size: 16px; outline: none; flex: 1; margin-left: 10px;
-            font-family: 'Fira Code', monospace;
-        }
+        .input-line input { background: transparent; border: none; color: var(--neon); font-size: 16px; outline: none; flex: 1; margin-left: 10px; font-family: 'Fira Code', monospace; }
 
-        /* --- Форма заявки --- */
-        .contact-section {
-            padding: 100px 5vw; text-align: center; position: relative; z-index: 2;
-            border-top: 1px solid #222;
-        }
-        .contact-section h2 {
-            font-family: 'Syne', sans-serif; font-size: 40px;
-            color: #fff; margin-bottom: 20px;
-        }
-        .form-box {
-            max-width: 500px; margin: 0 auto; background: #0a0a0a;
-            padding: 40px; border: 1px solid #222; border-radius: 8px;
-            box-shadow: 0 0 30px rgba(0,255,65,0.05);
-        }
+        /* --- Форма --- */
+        .contact-section { padding: 80px 5vw; text-align: center; position: relative; z-index: 2; border-top: 1px solid #222; }
+        .contact-section h2 { font-family: 'Syne', sans-serif; font-size: 40px; color: #fff; margin-bottom: 20px; }
+        .form-box { max-width: 500px; margin: 0 auto; background: #0a0a0a; padding: 40px; border: 1px solid #222; border-radius: 8px; box-shadow: 0 0 30px rgba(0,255,65,0.05); }
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; color: var(--gray); margin-bottom: 8px; font-size: 14px; }
-        .input-group input, .input-group textarea {
-            width: 100%; padding: 12px; background: #000;
-            border: 1px solid #333; color: #fff; font-family: 'Fira Code', monospace;
-            outline: none; transition: 0.3s; border-radius: 4px;
-        }
-        .input-group input:focus, .input-group textarea:focus {
-            border-color: var(--neon); box-shadow: 0 0 10px rgba(0,255,65,0.2);
-        }
-        .submit-btn {
-            width: 100%; padding: 15px; background: var(--neon);
-            color: var(--dark); border: none; font-weight: bold;
-            font-size: 16px; cursor: pointer; transition: 0.3s;
-            text-transform: uppercase; letter-spacing: 1px; border-radius: 4px;
-        }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; font-family: 'Fira Code', monospace; outline: none; transition: 0.3s; border-radius: 4px; }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,255,65,0.2); }
+        
+        .pass-gen { display: flex; gap: 10px; margin-bottom: 20px; }
+        .pass-gen input { flex: 1; padding: 12px; background: #000; border: 1px solid var(--tg); color: var(--tg); border-radius: 4px; font-family: monospace; text-align: center; letter-spacing: 2px; }
+        .pass-gen button { background: transparent; border: 1px solid var(--tg); color: var(--tg); padding: 0 15px; cursor: pointer; transition: 0.3s; border-radius: 4px; font-weight: bold; }
+        .pass-gen button:hover { background: var(--tg); color: #000; }
+        
+        .submit-btn { width: 100%; padding: 15px; background: var(--neon); color: var(--dark); border: none; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; }
         .submit-btn:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
-        .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
 
-        /* Уведомление */
-        .toast {
-            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
-            background: var(--neon); color: var(--dark); padding: 15px 30px;
-            border-radius: 50px; font-weight: bold; transition: 0.5s;
-            z-index: 10000; box-shadow: 0 0 30px var(--neon);
-        }
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--neon); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; transition: 0.5s; z-index: 10000; box-shadow: 0 0 30px var(--neon); }
         .toast.show { bottom: 30px; }
 
-        /* Частицы */
-        .particle {
-            position: fixed; width: 6px; height: 6px;
-            background: var(--neon); border-radius: 50%;
-            pointer-events: none; z-index: 9999;
-        }
+        .particle { position: fixed; width: 6px; height: 6px; background: var(--neon); border-radius: 50%; pointer-events: none; z-index: 9999; }
 
         /* --- Футер --- */
-        footer {
-            padding: 40px 5vw; display: flex; justify-content: space-between;
-            align-items: center; border-top: 1px solid #222;
-            color: #444; font-size: 13px; flex-wrap: wrap; gap: 20px;
-            position: relative; z-index: 2;
-        }
+        footer { padding: 40px 5vw; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #222; color: #444; font-size: 13px; flex-wrap: wrap; gap: 20px; position: relative; z-index: 2; }
         footer a { color: var(--tg); text-decoration: none; font-weight: bold; transition: 0.3s; }
-        footer a:hover { text-shadow: 0 0 10px var(--tg); }
+        
+        /* --- Анимация Тревоги --- */
+        .alarm-active { animation: alarm-bg 0.5s infinite; }
+        @keyframes alarm-bg { 0% { background-color: #050505; } 50% { background-color: #ff003c; } 100% { background-color: #050505; } }
     </style>
 </head>
 <body>
@@ -282,10 +161,12 @@
     <div class="cursor-ring"></div>
     <div class="cursor-dot"></div>
     <canvas id="matrix"></canvas>
+    <canvas id="bg-particles"></canvas>
     <div class="toast" id="toast">Заявка успешно отправлена!</div>
 
     <nav>
         <div class="logo" id="logo">NULL<span>_</span></div>
+        <div class="clock" id="clock">00:00:00</div>
         <div class="nav-right">
             <div class="nav-links">
                 <a href="#features">Протокол</a>
@@ -303,38 +184,37 @@
         <div class="hero-tag">СИСТЕМА ЗАЩИЩЕНА</div>
         <h1 class="glitch" data-text="ТЕБЯ НЕ СУЩЕСТВУЕТ">ТЕБЯ НЕ СУЩЕСТВУЕТ</h1>
         <p>Мы не просто скрываем твой IP. Мы стираем твой цифровой след. Военное шифрование, абсолютная анонимность и нулевая толерантность к слежке.</p>
-        <a href="#contact" class="btn">Оставить заявку</a>
+        <div>
+            <a href="#contact" class="btn">Оставить заявку</a>
+            <button id="sos-btn" class="btn sos-btn">SOS</button>
+        </div>
     </header>
 
     <section class="features" id="features">
-        <div class="feature tilt">
-            <h3>01 / Слепая зона</h3>
-            <p>Мы не храним логи. Вообще. Даже если нас взломают, они не найдут ничего о тебе. Нулевое логирование на аппаратном уровне.</p>
-        </div>
-        <div class="feature tilt">
-            <h3>02 / Квантовое шифрование</h3>
-            <p>Твой трафик защищен алгоритмами, которые не поддаются взлому даже на суперкомпьютерах АНБ.</p>
-        </div>
-        <div class="feature tilt">
-            <h3>03 / Невидимость</h3>
-            <p>Твой интернет-провайдер будет видеть только белый шум. Никаких метаданных, никаких паттернов поведения.</p>
-        </div>
+        <div class="feature tilt"><h3>01 / Слепая зона</h3><p>Мы не храним логи. Вообще. Даже если нас взломают, они не найдут ничего о тебе.</p></div>
+        <div class="feature tilt"><h3>02 / Квантовое шифрование</h3><p>Твой трафик защищен алгоритмами, которые не поддаются взлому даже на суперкомпьютерах АНБ.</p></div>
+        <div class="feature tilt"><h3>03 / Невидимость</h3><p>Твой интернет-провайдер будет видеть только белый шум. Никаких метаданных, никаких паттернов поведения.</p></div>
     </section>
 
     <section class="terminal-section" id="terminal">
         <div class="terminal tilt">
-            <div class="term-header">
-                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
-            </div>
+            <div class="term-header"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
             <div class="term-body" id="term-body">
                 <div class="term-line"><span class="prompt">root@null:~#</span> <span class="cmd">sys_check</span></div>
-                <div class="term-line out">[OK] Ядро защищено.</div>
-                <div class="term-line out" style="margin-bottom: 20px;">Введи <span style="color:#fff">help</span>, чтобы увидеть команды.</div>
-                <div class="input-line">
-                    <span class="prompt">root@null:~#</span>
-                    <input type="text" id="term-input" autocomplete="off" autofocus>
-                </div>
+                <div class="term-line out">[OK] Ядро защищено. Введи <span style="color:#fff">help</span> для списка команд.</div>
+                <div class="term-line out" style="color:var(--tg)">Секрет: попробуй сыграть в игру, введя команду "game".</div>
+                <div class="input-line"><span class="prompt">root@null:~#</span><input type="text" id="term-input" autocomplete="off" autofocus></div>
             </div>
+        </div>
+    </section>
+
+    <!-- Скретч-карта -->
+    <section class="scratch-section">
+        <h2 style="color: var(--gray); font-size: 20px;">// СКРЕТЧ-КАРТА //</h2>
+        <p style="color: var(--gray); font-size: 14px; margin-bottom: 10px;">Сотри защитный слой мышкой</p>
+        <div class="scratch-container">
+            <div class="scratch-prize">ПРОМОКОД: NULL-777</div>
+            <canvas class="scratch-canvas" id="scratch"></canvas>
         </div>
     </section>
 
@@ -343,19 +223,14 @@
         <p style="color: var(--gray); margin-bottom: 40px;">Свяжись с нами для получения доступа к системе NULL.</p>
         
         <div class="form-box tilt">
+            <div class="pass-gen">
+                <input type="text" id="pass-output" readonly placeholder="Твой пароль">
+                <button type="button" id="gen-btn">Сгенерировать</button>
+            </div>
             <form id="contact-form">
-                <div class="input-group">
-                    <label>Твой Псевдоним</label>
-                    <input type="text" id="name" placeholder="Например: Neo" required>
-                </div>
-                <div class="input-group">
-                    <label>Контакт в Telegram</label>
-                    <input type="text" id="username" placeholder="@username или номер" required>
-                </div>
-                <div class="input-group">
-                    <label>Сообщение (необязательно)</label>
-                    <textarea id="message" rows="3" placeholder="Что тебе нужно?"></textarea>
-                </div>
+                <div class="input-group"><label>Твой Псевдоним</label><input type="text" id="name" placeholder="Например: Neo" required></div>
+                <div class="input-group"><label>Контакт в Telegram</label><input type="text" id="username" placeholder="@username или номер" required></div>
+                <div class="input-group"><label>Сообщение (необязательно)</label><textarea id="message" rows="3" placeholder="Что тебе нужно?"></textarea></div>
                 <button type="submit" class="submit-btn" id="submit-btn">Отправить данные</button>
             </form>
         </div>
@@ -367,42 +242,25 @@
     </footer>
 
     <script>
-        // --- Генератор звуков (Web Audio API) ---
+        // --- Звуки ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-
-            if (type === 'click') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'success') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            }
+            if (type === 'click') { osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
+            else if (type === 'success') { osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+            else if (type === 'alarm') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.2); osc.frequency.linearRampToValueAtTime(400, audioCtx.currentTime + 0.4); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); }
         }
 
-        // --- 1. Матричный дождь ---
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
+        // --- Матричный дождь ---
+        const canvas = document.getElementById('matrix'); const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEF';
-        const alphabet = katakana.split('');
-        const fontSize = 16; const columns = canvas.width / fontSize;
+        const alphabet = katakana.split(''); const fontSize = 16; const columns = canvas.width / fontSize;
         const drops = []; for (let x = 0; x < columns; x++) drops[x] = 1;
-
         function drawMatrix() {
-            ctx.fillStyle = 'rgba(5, 5, 5, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#00ff41'; ctx.font = fontSize + 'px monospace';
             for (let i = 0; i < drops.length; i++) {
                 const text = alphabet[Math.floor(Math.random() * alphabet.length)];
@@ -414,154 +272,72 @@
         setInterval(drawMatrix, 33);
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
-        // --- 2. Кастомный курсор и частицы ---
-        const dot = document.querySelector('.cursor-dot');
-        const ring = document.querySelector('.cursor-ring');
-        const glow = document.querySelector('.cursor-glow');
-        let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-
-        window.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX; mouseY = e.clientY;
-            dot.style.left = mouseX + 'px'; dot.style.top = mouseY + 'px';
-            glow.style.left = mouseX + 'px'; glow.style.top = mouseY + 'px';
-        });
-
-        function animateCursor() {
-            ringX += (mouseX - ringX) * 0.15;
-            ringY += (mouseY - ringY) * 0.15;
-            ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
-            requestAnimationFrame(animateCursor);
+        // --- Летающие частицы на фоне ---
+        const bgCanvas = document.getElementById('bg-particles'); const bgCtx = bgCanvas.getContext('2d');
+        bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+        const particles = [];
+        for(let i=0; i<50; i++) particles.push({ x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height, vx: (Math.random()-0.5)*1, vy: (Math.random()-0.5)*1, size: Math.random()*2 });
+        function drawParticles() {
+            bgCtx.clearRect(0,0,bgCanvas.width, bgCanvas.height);
+            bgCtx.fillStyle = 'rgba(0,255,65,0.3)';
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x<0||p.x>bgCanvas.width) p.vx*=-1; if(p.y<0||p.y>bgCanvas.height) p.vy*=-1;
+                bgCtx.beginPath(); bgCtx.arc(p.x, p.y, p.size, 0, Math.PI*2); bgCtx.fill();
+            });
+            requestAnimationFrame(drawParticles);
         }
-        animateCursor();
+        drawParticles();
 
-        // Эффект взрыва частиц при клике
+        // --- Курсор и Клики ---
+        const dot = document.querySelector('.cursor-dot'); const ring = document.querySelector('.cursor-ring'); const glow = document.querySelector('.cursor-glow');
+        let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+        window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; dot.style.left = mouseX + 'px'; dot.style.top = mouseY + 'px'; glow.style.left = mouseX + 'px'; glow.style.top = mouseY + 'px'; });
+        function animateCursor() { ringX += (mouseX - ringX) * 0.15; ringY += (mouseY - ringY) * 0.15; ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px'; requestAnimationFrame(animateCursor); }
+        animateCursor();
         window.addEventListener('mousedown', (e) => {
             for (let i = 0; i < 8; i++) {
-                const p = document.createElement('div');
-                p.className = 'particle';
-                document.body.appendChild(p);
-                p.style.left = e.clientX + 'px';
-                p.style.top = e.clientY + 'px';
-                
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = 50 + Math.random() * 100;
-                const tx = Math.cos(angle) * velocity;
-                const ty = Math.sin(angle) * velocity;
-
-                p.animate([
-                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
-                ], { duration: 500, easing: 'cubic-bezier(0, .9, .57, 1)' }).onfinish = () => p.remove();
+                const p = document.createElement('div'); p.className = 'particle'; document.body.appendChild(p);
+                p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+                const angle = Math.random() * Math.PI * 2; const velocity = 50 + Math.random() * 100;
+                p.animate([{ transform: 'translate(0, 0) scale(1)', opacity: 1 }, { transform: `translate(${Math.cos(angle)*velocity}px, ${Math.sin(angle)*velocity}px) scale(0)`, opacity: 0 }], { duration: 500, easing: 'cubic-bezier(0, .9, .57, 1)' }).onfinish = () => p.remove();
             }
         });
 
-        // --- 3. 3D эффект и Звук ---
-        document.querySelectorAll('a, button, .tilt, input, textarea').forEach(el => {
+        document.querySelectorAll('a, button, .tilt, input, textarea, .scratch-canvas').forEach(el => {
             el.addEventListener('mouseenter', () => ring.classList.add('active'));
             el.addEventListener('mouseleave', () => ring.classList.remove('active'));
             el.addEventListener('click', () => playSound('click'));
         });
 
+        // --- 3D ---
         document.querySelectorAll('.tilt').forEach(card => {
             card.addEventListener('mousemove', e => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left, y = e.clientY - rect.top;
+                const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
                 card.style.setProperty('--x', `${x}px`); card.style.setProperty('--y', `${y}px`);
-                if(card.classList.contains('feature')) {
-                    const cX = rect.width / 2, cY = rect.height / 2;
-                    card.style.transform = `rotateX(${((y - cY) / cY) * -10}deg) rotateY(${((x - cX) / cX) * 10}deg) scale(1.02)`;
-                }
+                if(card.classList.contains('feature')) card.style.transform = `rotateX(${((y - rect.height/2) / (rect.height/2)) * -10}deg) rotateY(${((x - rect.width/2) / (rect.width/2)) * 10}deg) scale(1.02)`;
             });
-            card.addEventListener('mouseleave', () => {
-                if(card.classList.contains('feature')) card.style.transform = `rotateX(0) rotateY(0) scale(1)`;
-            });
+            card.addEventListener('mouseleave', () => { if(card.classList.contains('feature')) card.style.transform = `rotateX(0) rotateY(0) scale(1)`; });
         });
 
-        // --- 4. Терминал ---
-        const termInput = document.getElementById('term-input');
-        const termBody = document.getElementById('term-body');
-        termInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const command = this.value.trim().toLowerCase(); this.value = '';
-                const newLine = document.createElement('div');
-                newLine.className = 'term-line';
-                newLine.innerHTML = `<span class="prompt">root@null:~#</span> <span class="cmd">${command}</span>`;
-                const inputLine = document.querySelector('.input-line');
-                termBody.insertBefore(newLine, inputLine);
+        // --- Часы ---
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('ru-RU') + ' // ' + now.toLocaleDateString('ru-RU');
+        }, 1000);
 
-                let response = '';
-                if (command === 'help') response = 'Команды: help, hack, clear, tg, matrix, god';
-                else if (command === 'hack') response = 'Взлом сервера... Доступ разрешен.';
-                else if (command === 'tg') response = 'Мой тг: <a href="https://t.me/Zxcswu" target="_blank" style="color:#2AABEE">@Zxcswu</a>';
-                else if (command === 'matrix') { response = 'Пробуждение...'; document.querySelector('canvas').style.opacity = '0.8'; setTimeout(()=>document.querySelector('canvas').style.opacity='0.15', 3000); }
-                else if (command === 'god') { document.body.classList.toggle('god-mode'); response = 'Режим бога переключен.'; }
-                else if (command === 'clear') { termBody.querySelectorAll('.term-line').forEach(l => l.remove()); return; }
-                else if (command !== '') response = `Неизвестная команда: ${command}`;
-
-                if (response) {
-                    const outLine = document.createElement('div');
-                    outLine.className = 'term-line out'; outLine.innerHTML = response;
-                    termBody.insertBefore(outLine, inputLine);
-                }
-                termBody.scrollTop = termBody.scrollHeight;
-            }
+        // --- SOS Кнопка ---
+        document.getElementById('sos-btn').addEventListener('click', () => {
+            playSound('alarm');
+            document.body.classList.add('alarm-active');
+            setTimeout(() => {
+                document.body.classList.remove('alarm-active');
+                alert('🚨 ВНИМАНИЕ! СИСТЕМА ВЗЛОМАНА! 🚨\n\n(Шутка. Но выглядит страшно, да?)');
+            }, 1500);
         });
 
-        // --- 5. Пасхалка на логотип ---
-        let logoClicks = 0;
-        document.getElementById('logo').addEventListener('click', () => {
-            logoClicks++;
-            if (logoClicks >= 5) {
-                document.body.classList.toggle('god-mode');
-                logoClicks = 0;
-            }
-            setTimeout(() => { logoClicks = 0; }, 2000);
-        });
-
-        // --- 6. Отправка формы (Безопасно через Cloudflare Worker) ---
-        const WORKER_URL = 'https://null-bot.okak3213312.workers.dev'; 
-
-        const form = document.getElementById('contact-form');
-        const btn = document.getElementById('submit-btn');
-        const toast = document.getElementById('toast');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const username = document.getElementById('username').value;
-            const message = document.getElementById('message').value || 'Без сообщения';
-
-            btn.disabled = true;
-            btn.innerText = 'Шифрование и отправка...';
-
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, username: username, message: message })
-                });
-
-                if (response.ok) {
-                    showToast('Заявка успешно доставлена!');
-                    playSound('success');
-                    form.reset();
-                } else {
-                    showToast('Ошибка отправки.');
-                }
-            } catch (error) {
-                showToast('Ошибка сети.');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Отправить данные';
-            }
-        });
-
-        function showToast(msg) {
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-    </script>
-</body>
-</html>
+        // --- Генератор паролей ---
+        document.getElementById('gen-btn').addEventListener('click', () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let pass = '';
+            for (let i = 0; i < 16; i++) pass += chars.charAt(Math.floor(Math.random() *
