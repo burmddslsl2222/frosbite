@@ -25,7 +25,6 @@
             transition: background-color 0.3s;
         }
 
-        /* --- Пасхалка: Режим Бога --- */
         body.god-mode { background-color: #1a0000; }
         body.god-mode .cursor-dot { width: 20px; height: 20px; background: red; }
         body.god-mode .cursor-ring { width: 60px; height: 60px; border-color: red; }
@@ -54,6 +53,7 @@
 
         /* --- Матричный дождь --- */
         canvas#matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.15; pointer-events: none; }
+        canvas#bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
         /* --- Глитч --- */
         .glitch { font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; position: relative; font-size: clamp(40px, 8vw, 100px); line-height: 0.9; letter-spacing: -2px; }
@@ -97,7 +97,7 @@
         .sos-btn { border-color: var(--danger); color: var(--danger); margin-left: 20px; }
         .sos-btn:hover { box-shadow: 0 0 30px var(--danger); color: var(--dark); }
         .sos-btn::before { background: var(--danger); }
-        
+
         /* --- Скретч-карта --- */
         .scratch-section { padding: 50px 5vw; text-align: center; z-index: 2; position: relative; border-top: 1px solid #222;}
         .scratch-container { position: relative; width: 300px; height: 100px; margin: 20px auto; border-radius: 8px; overflow: hidden; border: 1px solid var(--neon); }
@@ -340,4 +340,121 @@
         document.getElementById('gen-btn').addEventListener('click', () => {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
             let pass = '';
-            for (let i = 0; i < 16; i++) pass += chars.charAt(Math.floor(Math.random() *
+            for (let i = 0; i < 16; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('pass-output').value = pass;
+            playSound('success');
+        });
+
+        // --- Скретч-карта ---
+        const scratchCanvas = document.getElementById('scratch');
+        const sCtx = scratchCanvas.getContext('2d');
+        scratchCanvas.width = 300; scratchCanvas.height = 100;
+        
+        // Заполняем защитный слой
+        sCtx.fillStyle = '#333';
+        sCtx.fillRect(0, 0, 300, 100);
+        sCtx.fillStyle = '#00ff41';
+        sCtx.font = '20px "Fira Code"';
+        sCtx.textAlign = 'center'; sCtx.textBaseline = 'middle';
+        sCtx.fillText('СОТРИ МЕНЯ', 150, 50);
+
+        let isDrawing = false;
+        scratchCanvas.addEventListener('mousedown', () => isDrawing = true);
+        scratchCanvas.addEventListener('mouseup', () => isDrawing = false);
+        scratchCanvas.addEventListener('mouseout', () => isDrawing = false);
+        
+        scratchCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = scratchCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            sCtx.globalCompositeOperation = 'destination-out';
+            sCtx.beginPath();
+            sCtx.arc(x, y, 20, 0, Math.PI * 2);
+            sCtx.fill();
+        });
+
+        // --- Терминал и Игра ---
+        const termInput = document.getElementById('term-input');
+        const termBody = document.getElementById('term-body');
+        let secretNumber = Math.floor(Math.random() * 100) + 1;
+        let gameActive = false;
+
+        termInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim().toLowerCase(); this.value = '';
+                const newLine = document.createElement('div');
+                newLine.className = 'term-line';
+                newLine.innerHTML = `<span class="prompt">root@null:~#</span> <span class="cmd">${command}</span>`;
+                const inputLine = document.querySelector('.input-line');
+                termBody.insertBefore(newLine, inputLine);
+
+                let response = '';
+                
+                if (gameActive) {
+                    const guess = parseInt(command);
+                    if (isNaN(guess)) response = 'Введи число!';
+                    else if (guess === secretNumber) { response = '🎉 ТЫ ВЗЛОМАЛ КОД! Число было ' + secretNumber; gameActive = false; }
+                    else if (guess < secretNumber) response = 'Больше...';
+                    else response = 'Меньше...';
+                } else {
+                    if (command === 'help') response = 'Команды: help, hack, clear, tg, matrix, god, game';
+                    else if (command === 'hack') response = 'Взлом сервера... Доступ разрешен.';
+                    else if (command === 'tg') response = 'Мой тг: <a href="https://t.me/Zxcswu" target="_blank" style="color:#2AABEE">@Zxcswu</a>';
+                    else if (command === 'matrix') { response = 'Пробуждение...'; document.querySelector('canvas#matrix').style.opacity = '0.8'; setTimeout(()=>document.querySelector('canvas#matrix').style.opacity='0.15', 3000); }
+                    else if (command === 'god') { document.body.classList.toggle('god-mode'); response = 'Режим бога переключен.'; }
+                    else if (command === 'game') { gameActive = true; secretNumber = Math.floor(Math.random() * 100) + 1; response = 'Игра началась! Я загадал число от 1 до 100. Попробуй угадать.'; }
+                    else if (command === 'clear') { termBody.querySelectorAll('.term-line').forEach(l => l.remove()); return; }
+                    else if (command !== '') response = `Неизвестная команда: ${command}. Введи "help".`;
+                }
+
+                if (response) {
+                    const outLine = document.createElement('div');
+                    outLine.className = 'term-line out'; outLine.innerHTML = response;
+                    termBody.insertBefore(outLine, inputLine);
+                }
+                termBody.scrollTop = termBody.scrollHeight;
+            }
+        });
+
+        // --- Пасхалка на логотип ---
+        let logoClicks = 0;
+        document.getElementById('logo').addEventListener('click', () => {
+            logoClicks++;
+            if (logoClicks >= 5) { document.body.classList.toggle('god-mode'); logoClicks = 0; }
+            setTimeout(() => { logoClicks = 0; }, 2000);
+        });
+
+        // --- Отправка формы ---
+        const WORKER_URL = 'https://null-bot.okak3213312.workers.dev'; 
+        const form = document.getElementById('contact-form');
+        const btn = document.getElementById('submit-btn');
+        const toast = document.getElementById('toast');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const username = document.getElementById('username').value;
+            const message = document.getElementById('message').value || 'Без сообщения';
+
+            btn.disabled = true; btn.innerText = 'Шифрование...';
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, username: username, message: message })
+                });
+                if (response.ok) { showToast('Заявка отправлена!'); playSound('success'); form.reset(); } 
+                else { showToast('Ошибка отправки.'); }
+            } catch (error) { showToast('Ошибка сети.'); } 
+            finally { btn.disabled = false; btn.innerText = 'Отправить данные'; }
+        });
+
+        function showToast(msg) {
+            toast.innerText = msg; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>
